@@ -10,4 +10,7 @@
     <string name="wifi_strength_description">The strength of the indicated Wi-Fi</string>
     <string name="record_indicator_description">An indicator showing if a previous record eists for the indicated network SSID</string>
     <string name="vertical_more_description">A button for getting options about the network</string>
+    <string name="delete_network_data">Delete all data about this network</string>
+    <string name="blacklist_prompt">Don\'t collect data about this network</string>
+    <string name="unblacklist_prompt">Collect data about this network</string>
 </resources>

@@ -29,7 +29,7 @@
         app:srcCompat="@drawable/ic_check_black_24dp" />
 
     <ImageView
-        android:id="@+id/imageView3"
+        android:id="@+id/more_button"
         android:layout_width="11dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
