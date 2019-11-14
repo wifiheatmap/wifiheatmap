@@ -1,6 +1,8 @@
 package com.wifiheatmap.wifiheatmap
 
+import android.app.Application
 import android.content.Context
+import android.content.res.Resources
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.view.*
@@ -9,23 +11,30 @@ import android.widget.TextView
 import androidx.appcompat.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
+import com.wifiheatmap.wifiheatmap.room.Network
 
 class HomeViewAdapter : RecyclerView.Adapter<HomeViewAdapter.NetworkHolder>() {
 
     class NetworkHolder(val networkView: View) : ViewHolder(networkView)
 
-    private class NetworkData(val networkDB: Any? = null, val scanResult: ScanResult?)
+    private data class NetworkData(val networkDB: Network? = null, val scanResult: ScanResult?)
 
-    private var networks: List<NetworkData>? = null
+    private var networks: MutableList<NetworkData>? = null
 
     /**
      * Updates the Objects in our list to display in the RecyclerView
-     * @param networksDB a [List] of //Get name from model// from the database
-     * @param networksVisible a [List] of //get name from Wifi code// which is all currently visible networks.
+     * @param networksDB a [List] of [Network] from the database
+     * @param scanResults a [List] of [ScanResult] which is all currently visible networks.
      */
-    fun setNetworks(networksDB: List<Any>, networksVisible: List<ScanResult>) {
+    fun setNetworks(networksDB: List<Network>, scanResults: List<ScanResult>) {
+        // clear the networks list and start from scratch
+        if (this.networks == null)
+        {
+            this.networks = mutableListOf(NetworkData(null, null))
+        }
+        this.networks!!.clear()
         /*
-            iterate through networksVisible
+            iterate through scanResults
             if an equivalent network exists in the networksDB list,
             merge them together into a NetworkData object.
             Else, create a NetworkData object anyways, except the DB
@@ -35,6 +44,42 @@ class HomeViewAdapter : RecyclerView.Adapter<HomeViewAdapter.NetworkHolder>() {
 
             No NetworkData object can have both be null!!!
          */
+
+        for (wifi : ScanResult in scanResults) {
+            var matchedNetwork : Network? = null
+            for (network : Network in networksDB) {
+                if (network.ssid == wifi.SSID) {
+                    matchedNetwork = network
+                    break
+                }
+            }
+            if (matchedNetwork != null) {
+                // we found matching SSIDs, store them together in
+                // the networks list.
+                this.networks!!.add(NetworkData(matchedNetwork, wifi))
+            }
+            else {
+                this.networks!!.add(NetworkData(null, wifi))
+            }
+        }
+
+        // Now we have all matched networks and scan results without databases,
+        // add all database entries that don't have matching scan results.
+        for (db : Network in networksDB) {
+            var matchFound = false
+            for (scan : ScanResult in scanResults) {
+                if (scan.SSID == db.ssid) {
+                    matchFound = true
+                    break
+                }
+            }
+            // only add if there is no match, because
+            // matches have already been added.
+            if (!matchFound) {
+                this.networks!!.add(NetworkData(db, null))
+            }
+        }
+
         notifyDataSetChanged()
     }
 
@@ -66,16 +111,16 @@ class HomeViewAdapter : RecyclerView.Adapter<HomeViewAdapter.NetworkHolder>() {
      *          corresponds to a location in the data we will display.
      */
     override fun onBindViewHolder(holder: NetworkHolder, position: Int) {
-        if (networks != null) {
+        if (networks != null && position >= 0 && position < this.itemCount) {
             // Get the network
-            val network = networks?.get(position) ?: NetworkData(null, null)
-            // Display the name of the network from whichever souce is non-null
+            val network = networks!![position]
+            // Display the name of the network from whichever source is non-null
             val ssidLabel = holder.networkView.findViewById<TextView>(R.id.ssid_label)
             ssidLabel.text = if (network.scanResult != null) {
                 network.scanResult.SSID
             }
             else {
-                network.networkDB?.toString() // TODO replace with SSID from database
+                network.networkDB!!.ssid
             }
             // TODO strike-through the text if the network has been blacklisted
 
@@ -135,13 +180,42 @@ class HomeViewAdapter : RecyclerView.Adapter<HomeViewAdapter.NetworkHolder>() {
 
     // https://developer.android.com/guide/topics/ui/menus#PopupMenu
     // https://developer.android.com/reference/android/widget/PopupMenu.html
+    /**
+     * Displays a smart popup menu that gives the user choices on
+     * how to contextually interact with the database (without
+     * explicitly telling them about the database).
+     * @param v a [View] object to anchor the popup to.
+     * @param c the [Context] of the view we anchor the popup to.
+     * @param n the [NetworkData] which determines how we interact
+     *          with the database.
+     */
     private fun showPopup(v: View, c: Context, n: NetworkData) {
         val popup = PopupMenu(c, v)
         val inflater: MenuInflater = popup.menuInflater
         inflater.inflate(R.menu.network_options, popup.menu)
         // TODO modify the menu to reflect the data.
         // set the text based on if the network is blacklisted.
-//        popup.menu.findItem(R.id.blacklistOption)
+        val rGetter = Resources.getSystem()
+        val blackList : MenuItem = popup.menu.findItem(R.id.blacklistOption)
+        if (n.networkDB != null) {
+            if (n.networkDB.blacklisted) {
+                blackList.title = rGetter.getString(R.string.unblacklist_prompt)
+                blackList.setOnMenuItemClickListener {
+                    if (c.applicationContext is Application) {
+                        ViewModel(c.applicationContext as Application)
+                            .insertNetwork()
+
+                    }
+                }
+            }
+            else {
+                blackList.title = rGetter.getString(R.string.unblacklist_prompt)
+            }
+        }
+        else {
+            // let the user blacklist BEFORE ever collecting data
+            blackList.title = rGetter.getString(R.string.blacklist_prompt)
+        }
         // Don't have the menu option to delete the data if the data is not there.
         if (n.networkDB == null)
             popup.menu.removeItem(R.id.delete_option)
