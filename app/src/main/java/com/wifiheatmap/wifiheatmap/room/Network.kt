@@ -4,7 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
-@Entity
+@Entity()
 data class Network (
     @PrimaryKey(autoGenerate = true) val id: Int,
     @ColumnInfo(name = "ssid")
