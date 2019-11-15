@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.app.ActivityCompat
+import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import com.google.android.gms.location.*
@@ -15,6 +16,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.LatLng
+import com.google.android.gms.maps.model.MapStyleOptions
 import com.wifiheatmap.wifiheatmap.databinding.MapsFragmentBinding
 
 private const val LOCATION_PERMISSION_REQUEST_CODE = 1
@@ -36,6 +38,18 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
         savedInstanceState: Bundle?
     ): View? {
         binding = DataBindingUtil.inflate(inflater, R.layout.maps_fragment, container, false)
+
+        binding.darkModeSwitch.setOnClickListener {
+            if (binding.darkModeSwitch.isChecked) {
+                map.setMapStyle(MapStyleOptions.loadRawResourceStyle(context, R.raw.night_map))
+            } else {
+                map.setMapStyle(MapStyleOptions.loadRawResourceStyle(context, R.raw.default_map))
+            }
+        }
+
+        binding.fab.setOnClickListener {
+            binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
 
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)

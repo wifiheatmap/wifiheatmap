@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Wifi Heat Map</string>
+    <string name="toggle_dark_mode">Toggle Dark Mode</string>
 </resources>
