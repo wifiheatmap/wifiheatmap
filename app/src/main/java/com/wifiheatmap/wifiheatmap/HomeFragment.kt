@@ -86,8 +86,17 @@ class HomeFragment : Fragment() {
 
     private fun updateScanResults()
     {
-        // TODO use asynchronous function
-        //  MainActivity when that's ready.
-        Toast.makeText(this.context, "ScanResults not implemented", Toast.LENGTH_SHORT).show()
+        fun passResults(l : List<ScanResult>)
+        {
+            Toast.makeText(this.context, "Size of ScanResults: " + l.size, Toast.LENGTH_SHORT).show()
+            this.scanResults = l
+            if (networks != null) {
+                // I don't have to worry about scanResults being null,
+                // because I set it above explicitly.
+                recyclerAdapter.setNetworks(networks!!, scanResults!!)
+            }
+        }
+        val mainActivity = this.activity as MainActivity
+        mainActivity.scanWifi(::passResults)
     }
 }
