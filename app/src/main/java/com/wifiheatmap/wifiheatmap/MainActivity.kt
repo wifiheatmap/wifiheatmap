@@ -31,10 +31,8 @@ class MainActivity : AppCompatActivity() {
 
         if (!wifiManager.isWifiEnabled()) {
             Toast.makeText(this, "WiFi is disabled ... We need to enable it", Toast.LENGTH_LONG).show()
-            wifiManager.setWifiEnabled(true);
+            wifiManager.isWifiEnabled = true
         }
-
-        scanWifi()
     }
 
     override fun onPause() {
@@ -45,25 +43,32 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
     }
 
-    fun scanWifi() {
+    // if you want to call this the syntax is *scanWifi(:: yourfunctionname)
+    fun scanWifi(callbackFun: (List<ScanResult>) -> Unit): Unit {
+
+        val wifiReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                results = wifiManager.scanResults
+                unregisterReceiver(this)
+
+
+                var nonDuplicatedResults2 : List<ScanResult> = scanResultManager.removeDuplicatesFromScanResults(results)
+
+                for (result in nonDuplicatedResults2) {
+                    arrayList.add(result.SSID + " | Wi-Fi Strength: " + result.level)
+                    // adapter.notifyDataSetChanged()
+                }
+                println("WITHIN THE RECEIVER!!!!!!")
+                // call that callback function passing the list of scan results
+                callbackFun(nonDuplicatedResults2)
+            }
+        }
+
         arrayList.clear()
         registerReceiver(wifiReceiver, IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION))
         wifiManager.startScan()
         Toast.makeText(this, "Scanning WiFi ... ", Toast.LENGTH_SHORT).show()
+
     }
 
-    val wifiReceiver = object : BroadcastReceiver() {
-        override fun onReceive(context: Context?, intent: Intent?) {
-            results = wifiManager.scanResults
-            unregisterReceiver(this)
-
-
-            var nonDuplicatedResults2 : List<ScanResult> = scanResultManager.removeDuplicatesFromScanResults(results)
-
-            for (result in nonDuplicatedResults2) {
-                arrayList.add(result.SSID + " | Wi-Fi Strength: " + result.level)
-                // adapter.notifyDataSetChanged()
-            }
-        }
-    }
 }
