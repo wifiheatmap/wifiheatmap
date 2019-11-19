@@ -1,17 +1,14 @@
 package com.wifiheatmap.wifiheatmap.room
 
 import androidx.lifecycle.LiveData
-import androidx.room.Dao
-import androidx.room.Delete
-import androidx.room.Insert
-import androidx.room.Query
+import androidx.room.*
 
 @Dao
 interface DataAccessObject {
     @Query("SELECT * FROM network")
     fun getNetworks(): LiveData<List<Network>>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertNetwork(vararg networks: Network?)
 
     @Insert
