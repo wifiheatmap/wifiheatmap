@@ -193,7 +193,7 @@ class HomeViewAdapter : RecyclerView.Adapter<HomeViewAdapter.NetworkHolder>() {
         val popup = PopupMenu(c, v)
         val inflater: MenuInflater = popup.menuInflater
         inflater.inflate(R.menu.network_options, popup.menu)
-        // TODO modify the menu to reflect the data.
+        // MODIFY THE MENU TO REFLECT THE DATA PRESENT
         // set the text based on if the network is blacklisted.
         val rGetter = Resources.getSystem()
         val blackList : MenuItem = popup.menu.findItem(R.id.blacklistOption)
@@ -202,26 +202,69 @@ class HomeViewAdapter : RecyclerView.Adapter<HomeViewAdapter.NetworkHolder>() {
                 blackList.title = rGetter.getString(R.string.unblacklist_prompt)
                 blackList.setOnMenuItemClickListener {
                     if (c.applicationContext is Application) {
-                        ViewModel(c.applicationContext as Application)
-                            .insertNetwork()
-
+                        // modify the network to update the database
+                        // so that the blacklisted condition is removed.
+                        val newNetwork = Network(n.networkDB.id, n.networkDB.ssid, false)
+                        ViewModel(c.applicationContext as Application).insertNetwork(newNetwork)
+                        // refresh the recyclerView to reflect changes.
+                        notifyDataSetChanged()
+                        return@setOnMenuItemClickListener true
                     }
+                    // We didn't have the application context, so we couldn't use the database.
+                    false
                 }
             }
             else {
-                blackList.title = rGetter.getString(R.string.unblacklist_prompt)
+                blackList.title = rGetter.getString(R.string.blacklist_prompt)
+                blackList.setOnMenuItemClickListener {
+                    if (c.applicationContext is Application) {
+                        // modify the network to update the database
+                        // so that
+                        val newNetwork = Network(n.networkDB.id, n.networkDB.ssid, true)
+                        ViewModel(c.applicationContext as Application).insertNetwork(newNetwork)
+                        // refresh the recyclerView to reflect changes.
+                        notifyDataSetChanged()
+                        return@setOnMenuItemClickListener true
+                    }
+                    // We didn't have the application context, so we couldn't use the database.
+                    false
+                }
             }
         }
         else {
             // let the user blacklist BEFORE ever collecting data
             blackList.title = rGetter.getString(R.string.blacklist_prompt)
+            blackList.setOnMenuItemClickListener {
+                if (c.applicationContext is Application) {
+                    // modify the network to update the database
+                    // so that the network is blacklisted.
+                    val newNetwork = Network(0, n.scanResult!!.SSID, true)
+                    ViewModel(c.applicationContext as Application).insertNetwork(newNetwork)
+                    // refresh the recyclerView to reflect changes.
+                    notifyDataSetChanged()
+                    return@setOnMenuItemClickListener true
+                }
+                // We didn't have the application context, so we couldn't use the database.
+                false
+            }
         }
-        // Don't have the menu option to delete the data if the data is not there.
-        if (n.networkDB == null)
+        // setup the delete database option
+        if (n.networkDB == null) {
+            // Don't have the menu option to delete the data if the data is not there.
             popup.menu.removeItem(R.id.delete_option)
-        popup.setOnMenuItemClickListener {
-            TODO("not implemented")
-            // NEED DATABASE FOR ALL LISTENERS TO FUNCTION
+        }
+        else {
+            val deleteOption : MenuItem = popup.menu.findItem(R.id.delete_option)
+            deleteOption.setOnMenuItemClickListener {
+                if (c.applicationContext is Application) {
+                    // add a network without any other data with blacklisted set to true.
+                    val newNetwork = Network(0, n.networkDB.ssid, true)
+                    ViewModel(c.applicationContext as Application).insertNetwork(newNetwork)
+                    notifyDataSetChanged()
+                    return@setOnMenuItemClickListener true
+                }
+                false
+            }
         }
         popup.show()
     }
