@@ -1,7 +1,5 @@
 <resources>
     <string name="app_name">Wifi Heat Map</string>
-
-    <!-- TODO: Remove or change this placeholder text -->
     <string name="home_network_prompt">Select a network to view while collecting data:</string>
     <string name="home_data_collection_warning">When you select a network, you are choosing which one to see in the map view. The app will collect data on all visible networks in the background. If you wish to not collect data on a particular network, you will need to blacklist the network.</string>
     <string name="ssid">Network SSID</string>
@@ -13,4 +11,5 @@
     <string name="delete_network_data">Delete all data about this network</string>
     <string name="blacklist_prompt">Don\'t collect data about this network</string>
     <string name="unblacklist_prompt">Collect data about this network</string>
+    <string name="refresh">Refresh</string>
 </resources>
