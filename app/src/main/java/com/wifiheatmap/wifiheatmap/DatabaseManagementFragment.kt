@@ -8,7 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.wifiheatmap.wifiheatmap.databinding.FragmentHomeBinding
+import com.wifiheatmap.wifiheatmap.databinding.FragmentDbManagementBinding
 import com.wifiheatmap.wifiheatmap.room.Network
 import timber.log.Timber
 
@@ -20,7 +20,7 @@ import timber.log.Timber
  */
 class DatabaseManagementFragment : Fragment() {
 
-    private lateinit var binding : FragmentHomeBinding
+    private lateinit var binding : FragmentDbManagementBinding
     private lateinit var recyclerAdapter: DatabaseManagementAdapter
     private var networks : List<Network>? = null
     private var scanResults : List<ScanResult>? = null
@@ -83,17 +83,23 @@ class DatabaseManagementFragment : Fragment() {
 
     private fun updateScanResults()
     {
-        fun passResults(l : List<ScanResult>)
-        {
-            Toast.makeText(this.context, "Size of ScanResults: " + l.size, Toast.LENGTH_SHORT).show()
-            this.scanResults = l
-            if (networks != null) {
-                // I don't have to worry about scanResults being null,
-                // because I set it above explicitly.
-                recyclerAdapter.setNetworks(networks!!, scanResults!!)
+        class ScanListener : MainActivity.scanResultListener {
+            override fun onScanResultsAvailable(results: List<ScanResult>) {
+                // A toast to make sure that the callback is called.
+                // TODO remove once the callback is confirmed to work.
+                Toast.makeText(context, "# of scan results: "
+                        + results.size, Toast.LENGTH_SHORT).show()
+                // As an anonymous class I have access to DatabaseManagementFragment variables.
+                scanResults = results
+                if (networks != null) {
+                    // I don't have to worry about scanResults being null,
+                    // because I set it above explicitly.
+                    recyclerAdapter.setNetworks(networks!!, scanResults!!)
+                }
             }
         }
         val mainActivity = this.activity as MainActivity
-        mainActivity.scanWifi(::passResults)
+        val scanListener = ScanListener()
+        mainActivity.scanWifi(scanListener)
     }
 }

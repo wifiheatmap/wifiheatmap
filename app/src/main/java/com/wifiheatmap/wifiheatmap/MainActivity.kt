@@ -18,9 +18,20 @@ import android.widget.Toast
 
 class MainActivity : AppCompatActivity() {
 
+    /**
+     * Interface allows us to make a simple callback function
+     * when scanning for Wi-Fi Networks.
+     */
+    interface scanResultListener {
+        /**
+         * Notifies the listener when scan results are available.
+         * @param results a [List] of [ScanResult] objects.
+         */
+        fun onScanResultsAvailable(results : List<ScanResult>)
+    }
+
     lateinit var wifiManager: WifiManager
     lateinit var results: List<ScanResult>
-    var arrayList: ArrayList<Any> = arrayListOf()
     var scanResultManager: ScanResultManager = ScanResultManager()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,16 +46,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    override fun onPause() {
-        super.onPause()
-    }
-
-    override fun onResume() {
-        super.onResume()
-    }
-
-    // if you want to call this the syntax is *scanWifi(:: yourfunctionname)
-    fun scanWifi(callbackFun: (List<ScanResult>) -> Unit): Unit {
+    /**
+     * Creates an asynchronous call to scan for nearby Wifi networks
+     * which is passed through the callback function in the
+     * ScanResultListener passed in as a parameter.
+     */
+    fun scanWifi(scl: scanResultListener) {
 
         val wifiReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
@@ -52,19 +59,14 @@ class MainActivity : AppCompatActivity() {
                 unregisterReceiver(this)
 
 
-                var nonDuplicatedResults2 : List<ScanResult> = scanResultManager.removeDuplicatesFromScanResults(results)
+                val nonDuplicatedResults2 : List<ScanResult> = scanResultManager
+                    .removeDuplicatesFromScanResults(results)
 
-                for (result in nonDuplicatedResults2) {
-                    arrayList.add(result.SSID + " | Wi-Fi Strength: " + result.level)
-                    // adapter.notifyDataSetChanged()
-                }
-                println("WITHIN THE RECEIVER!!!!!!")
                 // call that callback function passing the list of scan results
-                callbackFun(nonDuplicatedResults2)
+                scl.onScanResultsAvailable(nonDuplicatedResults2)
             }
         }
 
-        arrayList.clear()
         registerReceiver(wifiReceiver, IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION))
         wifiManager.startScan()
         Toast.makeText(this, "Scanning WiFi ... ", Toast.LENGTH_SHORT).show()
