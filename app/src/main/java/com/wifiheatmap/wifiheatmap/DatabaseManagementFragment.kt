@@ -2,13 +2,10 @@ package com.wifiheatmap.wifiheatmap
 
 import android.net.wifi.ScanResult
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.databinding.DataBindingUtil
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.wifiheatmap.wifiheatmap.databinding.FragmentHomeBinding
@@ -21,10 +18,10 @@ import timber.log.Timber
  * visible to this device, and what history the device has
  * recorded about those networks.
  */
-class HomeFragment : Fragment() {
+class DatabaseManagementFragment : Fragment() {
 
     private lateinit var binding : FragmentHomeBinding
-    private lateinit var recyclerAdapter: HomeViewAdapter
+    private lateinit var recyclerAdapter: DatabaseManagementAdapter
     private var networks : List<Network>? = null
     private var scanResults : List<ScanResult>? = null
 
@@ -33,11 +30,11 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        this.binding = DataBindingUtil.inflate(inflater, R.layout.fragment_home, container, false)
+        this.binding = DataBindingUtil.inflate(inflater, R.layout.fragment_db_management, container, false)
 
         // setup the recyclerView
         val recyclerLayout = LinearLayoutManager(this.context)
-        recyclerAdapter = HomeViewAdapter()
+        recyclerAdapter = DatabaseManagementAdapter()
 
         binding.networksRecyclerView.apply{
             setHasFixedSize(true)

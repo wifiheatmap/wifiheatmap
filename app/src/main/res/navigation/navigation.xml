@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/homeFragment"
-        android:name="com.wifiheatmap.wifiheatmap.HomeFragment"
+        android:name="com.wifiheatmap.wifiheatmap.DatabaseManagementFragment"
         android:label="fragment_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_db_management" />
 </navigation>

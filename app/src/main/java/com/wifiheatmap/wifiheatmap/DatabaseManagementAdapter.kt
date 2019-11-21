@@ -13,7 +13,7 @@ import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.wifiheatmap.wifiheatmap.room.Network
 
-class HomeViewAdapter : RecyclerView.Adapter<HomeViewAdapter.NetworkHolder>() {
+class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter.NetworkHolder>() {
 
     class NetworkHolder(val networkView: View) : ViewHolder(networkView)
 
