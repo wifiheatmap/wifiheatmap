@@ -22,14 +22,24 @@
 
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/fab"
+                android:id="@+id/settings_fab"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="64dp"
-                android:layout_marginBottom="32dp"
-                android:src="@drawable/ic_settings_white_24dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="104dp"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintEnd_toEndOf="parent" />
+                app:layout_constraintEnd_toEndOf="parent"
+                app:srcCompat="@drawable/ic_settings_white_24dp" />
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/play_pause_fab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="0dp"
+                android:layout_marginBottom="8dp"
+                app:layout_constraintBottom_toTopOf="@+id/settings_fab"
+                app:layout_constraintEnd_toEndOf="@+id/settings_fab"
+                app:srcCompat="@drawable/ic_play_arrow_white_24dp" />
 
         </androidx.constraintlayout.widget.ConstraintLayout>
 

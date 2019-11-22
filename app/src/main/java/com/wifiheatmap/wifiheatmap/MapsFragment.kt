@@ -1,12 +1,14 @@
 package com.wifiheatmap.wifiheatmap
 
 import android.content.pm.PackageManager
+import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
@@ -19,6 +21,7 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.TileOverlay
 import com.google.android.gms.maps.model.TileOverlayOptions
+import com.google.maps.android.heatmaps.Gradient
 import com.google.maps.android.heatmaps.HeatmapTileProvider
 import com.google.maps.android.heatmaps.WeightedLatLng
 import com.wifiheatmap.wifiheatmap.databinding.MapsFragmentBinding
@@ -27,18 +30,30 @@ private const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
 class MapsFragment : Fragment(), OnMapReadyCallback {
 
-    private lateinit var viewModel: MapsViewModel
+    private lateinit var mapsViewModel: MapsViewModel
+    private lateinit var viewModel: ViewModel
     private lateinit var binding: MapsFragmentBinding
     private lateinit var map: GoogleMap
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var lastLocation: Location
     private lateinit var locationCallback: LocationCallback
     private lateinit var locationRequest: LocationRequest
-    private lateinit var heatmapTileProvider: HeatmapTileProvider
-    private lateinit var tileOverlay: TileOverlay
+    private var heatmapTileProvider: HeatmapTileProvider? = null
+    private var tileOverlay: TileOverlay? = null
 
     private var locationUpdateState: Boolean = false
     private val heatmapData = ArrayList<WeightedLatLng>()
+
+    private val heatMapGradientColors = intArrayOf(
+        Color.rgb(0, 0, 255),
+        Color.rgb(255, 0, 0)
+    )
+
+    private val heatMapGradientStartPoints = floatArrayOf(
+        0.2f, 1f
+    )
+
+    private val gradient = Gradient(heatMapGradientColors, heatMapGradientStartPoints)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -54,8 +69,36 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
             }
         }
 
-        binding.fab.setOnClickListener {
+        binding.settingsFab.setOnClickListener {
             binding.drawerLayout.openDrawer(GravityCompat.START)
+        }
+
+        binding.playPauseFab.setOnClickListener {
+            if (locationUpdateState) {
+                // on pause
+                locationUpdateState = false
+                fusedLocationClient.removeLocationUpdates(locationCallback)
+                context?.let {
+                    binding.playPauseFab.setImageDrawable(
+                        ContextCompat.getDrawable(
+                            it,
+                            R.drawable.ic_play_arrow_white_24dp
+                        )
+                    )
+                }
+            } else {
+                // on play
+                locationUpdateState = true
+                startLocationUpdates()
+                context?.let {
+                    binding.playPauseFab.setImageDrawable(
+                        ContextCompat.getDrawable(
+                            it,
+                            R.drawable.ic_pause_white_24dp
+                        )
+                    )
+                }
+            }
         }
 
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
@@ -98,7 +141,8 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
                 map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 20.0f))
             }
         }
-        addHeatMap()
+
+        updateHeatMap()
     }
 
     private fun getPermission() {
@@ -140,21 +184,23 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
             val client = LocationServices.getSettingsClient(context)
             val task = client.checkLocationSettings(builder.build())
 
+            // need to remove right away because on resume enables it when the app launches
             task.addOnSuccessListener {
-                locationUpdateState = true
-                startLocationUpdates()
+                locationUpdateState = false
+                fusedLocationClient.removeLocationUpdates(locationCallback)
             }
         }
     }
 
-    private fun addHeatMap() {
-        heatmapTileProvider = HeatmapTileProvider.Builder().weightedData(heatmapData).build()
-        tileOverlay = map.addTileOverlay(TileOverlayOptions().tileProvider(heatmapTileProvider))
-    }
-
     private fun updateHeatMap() {
-        heatmapTileProvider.setWeightedData(heatmapData)
-        tileOverlay.clearTileCache()
+        if (heatmapTileProvider == null && heatmapData.isNotEmpty()) {
+            heatmapTileProvider =
+                HeatmapTileProvider.Builder().radius(10).weightedData(heatmapData)
+                    .gradient(gradient).build()
+            tileOverlay = map.addTileOverlay(TileOverlayOptions().tileProvider(heatmapTileProvider))
+        }
+        heatmapTileProvider?.setWeightedData(heatmapData)
+        tileOverlay?.clearTileCache()
     }
 
     override fun onPause() {
