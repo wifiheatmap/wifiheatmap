@@ -25,4 +25,7 @@ interface DataAccessObject {
 
     @Query("SELECT * FROM data WHERE data.network_id = :networkId AND data.latitude > :minLatitude AND data.longitude > :minLongitude AND data.latitude < :maxLatitude AND data.longitude < :maxLongitude")
     fun getData(networkId: Int, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double): LiveData<List<Data>>
+
+    @Query("SELECT CASE WHEN EXISTS (SELECT * FROM network, data WHERE network.id = data.id AND network.ssid = :ssid) THEN 1 ELSE 0 END")
+    fun getRecordExists(ssid: String)
 }

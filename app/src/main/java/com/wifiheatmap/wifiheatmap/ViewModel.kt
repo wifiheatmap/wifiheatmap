@@ -45,4 +45,6 @@ class ViewModel(app: Application): AndroidViewModel(app) {
         repo.deleteData(data)
     }
 
+    fun
+
 }
