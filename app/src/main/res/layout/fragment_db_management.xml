@@ -7,9 +7,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <!-- TODO: Update blank fragment layout -->
         <TextView
-            android:id="@+id/home_fragment_title"
+            android:id="@+id/dbm_fragment_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="@dimen/app_margin_medium"
@@ -33,7 +32,7 @@
             android:orientation="horizontal"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/home_fragment_title">
+            app:layout_constraintTop_toBottomOf="@+id/dbm_fragment_title">
 
             <TextView
                 android:id="@+id/ssid_column_title"
