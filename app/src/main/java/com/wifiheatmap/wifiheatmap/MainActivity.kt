@@ -1,11 +1,14 @@
 package com.wifiheatmap.wifiheatmap
 
+import android.Manifest
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
+import android.os.Build
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -36,6 +39,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // for some reason this was sometimes working and sometimes not working.
+        // it might have had something to do with my app already having permissions to location.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION), 0)
+        }
+
         setContentView(R.layout.activity_main)
 
         wifiManager = this.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
@@ -61,6 +71,8 @@ class MainActivity : AppCompatActivity() {
 
                 val nonDuplicatedResults2 : List<ScanResult> = scanResultManager
                     .removeDuplicatesFromScanResults(results)
+
+                Toast.makeText(context, "in WifiReceiver!", Toast.LENGTH_SHORT).show()
 
                 // call that callback function passing the list of scan results
                 scl.onScanResultsAvailable(nonDuplicatedResults2)
