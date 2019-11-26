@@ -2,6 +2,7 @@ package com.wifiheatmap.wifiheatmap.room
 
 import androidx.lifecycle.LiveData
 import androidx.room.*
+import java.util.*
 
 @Dao
 interface DataAccessObject {
@@ -25,4 +26,7 @@ interface DataAccessObject {
 
     @Query("SELECT * FROM data WHERE data.network_id = :networkId AND data.latitude > :minLatitude AND data.longitude > :minLongitude AND data.latitude < :maxLatitude AND data.longitude < :maxLongitude")
     fun getData(networkId: Int, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double): LiveData<List<Data>>
+
+    @Query("SELECT * FROM data WHERE data.network_id = :networkId AND data.latitude > :minLatitude AND data.longitude > :minLongitude AND data.latitude < :maxLatitude AND data.longitude < :maxLongitude AND data.date > :minDate AND data.date < :maxDate")
+    fun getData(networkId: Int, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double, minDate: Date, maxDate: Date): LiveData<List<Data>>
 }
