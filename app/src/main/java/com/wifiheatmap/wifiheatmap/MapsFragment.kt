@@ -44,6 +44,8 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
     private var locationUpdateState: Boolean = false
     private val heatmapData = ArrayList<WeightedLatLng>()
 
+    private val settingsDialog = SettingsDialog()
+
     private val heatMapGradientColors = intArrayOf(
         Color.rgb(0, 0, 255),
         Color.rgb(255, 0, 0)
@@ -98,6 +100,12 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
                         )
                     )
                 }
+            }
+        }
+
+        binding.dialogButton.setOnClickListener {
+            fragmentManager?.let {
+                settingsDialog.show(it, null)
             }
         }
 

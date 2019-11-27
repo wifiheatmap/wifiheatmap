@@ -56,6 +56,12 @@
                 android:checked="false"
                 android:text="@string/toggle_dark_mode" />
 
+            <Button
+                android:id="@+id/dialog_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="dialog" />
+
         </com.google.android.material.navigation.NavigationView>
 
     </androidx.drawerlayout.widget.DrawerLayout>
