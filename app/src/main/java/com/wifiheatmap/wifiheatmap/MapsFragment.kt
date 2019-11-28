@@ -9,9 +9,10 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProviders
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -31,9 +32,9 @@ private const val LOCATION_PERMISSION_REQUEST_CODE = 1
 class MapsFragment : Fragment(), OnMapReadyCallback {
 
     private lateinit var mapsViewModel: MapsViewModel
-    private lateinit var viewModel: ViewModel
+    private lateinit var roomViewModel: ViewModel
     private lateinit var binding: MapsFragmentBinding
-    private lateinit var map: GoogleMap
+    private var map: GoogleMap? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var lastLocation: Location
     private lateinit var locationCallback: LocationCallback
@@ -46,33 +47,53 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
 
     private val settingsDialog = SettingsDialog()
 
-    private val heatMapGradientColors = intArrayOf(
-        Color.rgb(0, 0, 255),
-        Color.rgb(255, 0, 0)
-    )
-
-    private val heatMapGradientStartPoints = floatArrayOf(
-        0.2f, 1f
-    )
-
-    private val gradient = Gradient(heatMapGradientColors, heatMapGradientStartPoints)
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         binding = DataBindingUtil.inflate(inflater, R.layout.maps_fragment, container, false)
 
-        binding.darkModeSwitch.setOnClickListener {
-            if (binding.darkModeSwitch.isChecked) {
-                map.setMapStyle(MapStyleOptions.loadRawResourceStyle(context, R.raw.night_map))
+        mapsViewModel = ViewModelProviders.of(requireActivity()).get(MapsViewModel::class.java)
+
+        mapsViewModel.isDarkModeEnabled.observe(this, Observer { isEnabled ->
+            if (isEnabled) {
+                map?.setMapStyle(MapStyleOptions.loadRawResourceStyle(context, R.raw.night_map))
             } else {
-                map.setMapStyle(MapStyleOptions.loadRawResourceStyle(context, R.raw.default_map))
+                map?.setMapStyle(MapStyleOptions.loadRawResourceStyle(context, R.raw.default_map))
             }
-        }
+        })
+
+        mapsViewModel.isColorBlindModeEnabled.observe(this, Observer { isEnabled ->
+            if (isEnabled) {
+                heatmapTileProvider?.setGradient(
+                    Gradient(
+                        intArrayOf(
+                            Color.rgb(0, 0, 255),
+                            Color.rgb(255, 0, 0)
+                        ), floatArrayOf(
+                            0.2f, 1f
+                        )
+                    )
+                )
+            } else {
+                heatmapTileProvider?.setGradient(
+                    Gradient(
+                        intArrayOf(
+                            Color.rgb(102, 225, 0),
+                            Color.rgb(255, 0, 0)
+                        ), floatArrayOf(
+                            0.2f, 1f
+                        )
+                    )
+                )
+            }
+        })
 
         binding.settingsFab.setOnClickListener {
-            binding.drawerLayout.openDrawer(GravityCompat.START)
+            fragmentManager?.let {
+                settingsDialog.show(it, null)
+            }
+            //binding.drawerLayout.openDrawer(GravityCompat.START)
         }
 
         binding.playPauseFab.setOnClickListener {
@@ -100,12 +121,6 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
                         )
                     )
                 }
-            }
-        }
-
-        binding.dialogButton.setOnClickListener {
-            fragmentManager?.let {
-                settingsDialog.show(it, null)
             }
         }
 
@@ -139,14 +154,14 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-        map.uiSettings.isZoomControlsEnabled = true
+        map?.uiSettings?.isZoomControlsEnabled = true
         getPermission()
-        map.isMyLocationEnabled = true
+        map?.isMyLocationEnabled = true
         fusedLocationClient.lastLocation.addOnSuccessListener {
             if (it != null) {
                 lastLocation = it
                 val currentLatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
-                map.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 20.0f))
+                map?.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 20.0f))
             }
         }
 
@@ -203,9 +218,9 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
     private fun updateHeatMap() {
         if (heatmapTileProvider == null && heatmapData.isNotEmpty()) {
             heatmapTileProvider =
-                HeatmapTileProvider.Builder().radius(10).weightedData(heatmapData)
-                    .gradient(gradient).build()
-            tileOverlay = map.addTileOverlay(TileOverlayOptions().tileProvider(heatmapTileProvider))
+                HeatmapTileProvider.Builder().radius(10).weightedData(heatmapData).build()
+            tileOverlay =
+                map?.addTileOverlay(TileOverlayOptions().tileProvider(heatmapTileProvider))
         }
         heatmapTileProvider?.setWeightedData(heatmapData)
         tileOverlay?.clearTileCache()
