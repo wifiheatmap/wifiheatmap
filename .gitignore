@@ -95,4 +95,4 @@ lint/intermediates/
 lint/generated/
 lint/outputs/
 lint/tmp/
-# lint/reports/
+app/src/main/res/values/api.xml
