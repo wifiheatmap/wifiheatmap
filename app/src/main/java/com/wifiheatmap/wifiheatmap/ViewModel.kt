@@ -8,6 +8,7 @@ import com.wifiheatmap.wifiheatmap.room.Data
 import com.wifiheatmap.wifiheatmap.room.DataAccessObject
 import com.wifiheatmap.wifiheatmap.room.Network
 import com.wifiheatmap.wifiheatmap.room.WifiRepository
+import java.util.*
 
 class ViewModel(app: Application): AndroidViewModel(app) {
 
@@ -27,6 +28,10 @@ class ViewModel(app: Application): AndroidViewModel(app) {
 
     fun getData(networkId: Int, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double): LiveData<List<Data>> {
         return repo.getData(networkId, minLatitude, minLongitude, maxLatitude, maxLongitude)
+    }
+
+    fun getData(networkId: Int, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double, minDate: Date, maxDate: Date): LiveData<List<Data>> {
+        return repo.getData(networkId, minLatitude, minLongitude, maxLatitude, maxLongitude, minDate, maxDate)
     }
 
     fun insertNetwork(network: Network) {

@@ -3,6 +3,7 @@ package com.wifiheatmap.wifiheatmap.room
 import android.app.Application
 import android.os.AsyncTask
 import androidx.lifecycle.LiveData
+import java.util.*
 
 class WifiRepository(app: Application) {
     private var dataAccessObject: DataAccessObject
@@ -22,6 +23,10 @@ class WifiRepository(app: Application) {
 
     fun getData(networkId: Int, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double): LiveData<List<Data>> {
         return dataAccessObject.getData(networkId, minLatitude, minLongitude, maxLatitude, maxLongitude)
+    }
+
+    fun getData(networkId: Int, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double, minDate: Date, maxDate: Date): LiveData<List<Data>> {
+        return dataAccessObject.getData(networkId, minLatitude, minLongitude, maxLatitude, maxLongitude, minDate, maxDate)
     }
 
     class AsyncInsertNetwork(val dataAccessObject: DataAccessObject): AsyncTask<Network, Void, Unit>() {
