@@ -122,9 +122,7 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
             else {
                 network.networkDB!!.ssid
             }
-
-            // put a strike through the text if it has been blacklisted
-            ssidLabel.paint.isStrikeThruText = network.networkDB != null && network.networkDB.blacklisted
+            // TODO strike-through the text if the network has been blacklisted
 
             // display the strength of the current network as an icon.
             val strength = holder.networkView.findViewById<ImageView>(R.id.wifi_strength)
@@ -197,10 +195,11 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
         inflater.inflate(R.menu.network_options, popup.menu)
         // MODIFY THE MENU TO REFLECT THE DATA PRESENT
         // set the text based on if the network is blacklisted.
+        val rGetter = Resources.getSystem()
         val blackList : MenuItem = popup.menu.findItem(R.id.blacklistOption)
         if (n.networkDB != null) {
             if (n.networkDB.blacklisted) {
-                blackList.title = c.resources.getString(R.string.unblacklist_prompt)
+                blackList.title = rGetter.getString(R.string.unblacklist_prompt)
                 blackList.setOnMenuItemClickListener {
                     if (c.applicationContext is Application) {
                         // modify the network to update the database
@@ -216,7 +215,7 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
                 }
             }
             else {
-                blackList.title = c.resources.getString(R.string.blacklist_prompt)
+                blackList.title = rGetter.getString(R.string.blacklist_prompt)
                 blackList.setOnMenuItemClickListener {
                     if (c.applicationContext is Application) {
                         // modify the network to update the database
@@ -234,7 +233,7 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
         }
         else {
             // let the user blacklist BEFORE ever collecting data
-            blackList.title = c.resources.getString(R.string.blacklist_prompt)
+            blackList.title = rGetter.getString(R.string.blacklist_prompt)
             blackList.setOnMenuItemClickListener {
                 if (c.applicationContext is Application) {
                     // modify the network to update the database
@@ -258,14 +257,9 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
             val deleteOption : MenuItem = popup.menu.findItem(R.id.delete_option)
             deleteOption.setOnMenuItemClickListener {
                 if (c.applicationContext is Application) {
-                    // Get a reference to the ViewModel
-                    val viewModel = ViewModel(c.applicationContext as Application)
-                    // Cascading delete on the old version of the network
-                    viewModel.deleteNetwork(n.networkDB)
                     // add a network without any other data with blacklisted set to true.
-                    // so that we don't add new data.
                     val newNetwork = Network(0, n.networkDB.ssid, true)
-                    viewModel.insertNetwork(newNetwork)
+                    ViewModel(c.applicationContext as Application).insertNetwork(newNetwork)
                     notifyDataSetChanged()
                     return@setOnMenuItemClickListener true
                 }
