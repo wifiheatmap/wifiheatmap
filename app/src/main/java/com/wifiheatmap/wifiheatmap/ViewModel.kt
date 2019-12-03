@@ -46,7 +46,7 @@ class ViewModel(app: Application): AndroidViewModel(app) {
     }
 
     fun getRecordExists(ssid: String) {
-
+        repo.getRecordExists(ssid)
     }
 
 }
