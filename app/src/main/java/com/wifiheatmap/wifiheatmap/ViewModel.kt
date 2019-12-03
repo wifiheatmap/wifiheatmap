@@ -44,9 +44,8 @@ class ViewModel(app: Application): AndroidViewModel(app) {
     fun deleteData(data: Data) {
         repo.deleteData(data)
     }
-
+  
     fun getRecordExists(ssid: String) {
         repo.getRecordExists(ssid)
     }
-
 }
