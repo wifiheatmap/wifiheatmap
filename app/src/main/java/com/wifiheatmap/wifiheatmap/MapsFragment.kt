@@ -38,7 +38,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var lastLocation: Location
     private lateinit var locationCallback: LocationCallback
-    private lateinit var locationRequest: LocationRequest
+    private var locationRequest: LocationRequest? = null
     private var heatmapTileProvider: HeatmapTileProvider? = null
     private var tileOverlay: TileOverlay? = null
 
@@ -127,9 +127,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
         val mapFragment = childFragmentManager.findFragmentById(R.id.map) as SupportMapFragment
         mapFragment.getMapAsync(this)
 
-        context?.let {
-            fusedLocationClient = LocationServices.getFusedLocationProviderClient(it)
-        }
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireContext())
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
@@ -147,9 +145,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
             }
         }
 
-        createLocationRequest()
-
-        return binding.root
+        return binding.contraintLayout
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
@@ -189,6 +185,11 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
 
     private fun startLocationUpdates() {
         getPermission()
+
+        if (locationRequest == null) {
+            createLocationRequest()
+        }
+
         fusedLocationClient.requestLocationUpdates(
             locationRequest,
             locationCallback,
@@ -198,21 +199,24 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
 
     private fun createLocationRequest() {
         locationRequest = LocationRequest()
-        locationRequest.interval = 10000
-        locationRequest.fastestInterval = 5000
-        locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
+        locationRequest?.let { locationRequest ->
+            locationRequest.interval = 10000
+            locationRequest.fastestInterval = 5000
+            locationRequest.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
 
-        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
-        context?.let { context ->
-            val client = LocationServices.getSettingsClient(context)
-            val task = client.checkLocationSettings(builder.build())
+            val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+            context?.let { context ->
+                val client = LocationServices.getSettingsClient(context)
+                val task = client.checkLocationSettings(builder.build())
 
-            // need to remove right away because on resume enables it when the app launches
-            task.addOnSuccessListener {
-                locationUpdateState = false
-                fusedLocationClient.removeLocationUpdates(locationCallback)
+                // need to remove right away because on resume enables it when the app launches
+                task.addOnSuccessListener {
+                    locationUpdateState = false
+                    fusedLocationClient.removeLocationUpdates(locationCallback)
+                }
             }
         }
+
     }
 
     private fun updateHeatMap() {
