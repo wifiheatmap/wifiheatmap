@@ -64,8 +64,4 @@ class WifiRepository(app: Application) {
         AsyncDeleteData(dataAccessObject).execute(data)
     }
 
-    fun getRecordExists(ssid: String) {
-        
-    }
-
 }
