@@ -27,5 +27,5 @@ interface DataAccessObject {
     fun getData(networkId: Int, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double): LiveData<List<Data>>
 
     @Query("SELECT CASE WHEN EXISTS (SELECT * FROM network, data WHERE network.id = data.id AND network.ssid = :ssid) THEN 1 ELSE 0 END")
-    fun getRecordExists(ssid: String)
+    fun getRecordExists(ssid: String): LiveData<Boolean>
 }

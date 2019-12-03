@@ -90,5 +90,9 @@ class DatabaseTest {
         dao.insertNetwork(newNetworkZero)
         assert(await(dao.getNetworks())?.contains(newNetworkZero) ?: false)
 
+        assert(!(await(dao.getRecordExists("This should not exist")) ?: true))
+        assert(!(await(dao.getRecordExists("Network Zero")) ?: true))
+        assert(await(dao.getRecordExists("Test Network 1")) ?: false)
+
     }
 }
