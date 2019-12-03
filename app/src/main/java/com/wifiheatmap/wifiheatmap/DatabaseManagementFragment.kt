@@ -85,10 +85,6 @@ class DatabaseManagementFragment : Fragment() {
     {
         class ScanListener : MainActivity.scanResultListener {
             override fun onScanResultsAvailable(results: List<ScanResult>) {
-                // A toast to make sure that the callback is called.
-                // TODO remove once the callback is confirmed to work.
-                Toast.makeText(context, "# of scan results: "
-                        + results.size, Toast.LENGTH_SHORT).show()
                 // As an anonymous class I have access to DatabaseManagementFragment variables.
                 scanResults = results
                 if (networks != null) {

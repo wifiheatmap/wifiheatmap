@@ -2,7 +2,6 @@ package com.wifiheatmap.wifiheatmap
 
 import android.app.Application
 import android.content.Context
-import android.content.res.Resources
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.view.*
@@ -122,7 +121,17 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
             else {
                 network.networkDB!!.ssid
             }
-            // TODO strike-through the text if the network has been blacklisted
+            if (network.networkDB != null && network.networkDB.blacklisted) {
+                // strike through the the text
+                ssidLabel.paint.isStrikeThruText = true
+                // give it a grey background
+                holder.networkView.setBackgroundColor(holder.networkView.context.getColor(R.color.blacklistGrey))
+            } else {
+                // explicitly don't strike-through
+                ssidLabel.paint.isStrikeThruText = false
+                // give it a transparent background
+                holder.networkView.setBackgroundColor(0x00000000)
+            }
 
             // display the strength of the current network as an icon.
             val strength = holder.networkView.findViewById<ImageView>(R.id.wifi_strength)
@@ -195,11 +204,10 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
         inflater.inflate(R.menu.network_options, popup.menu)
         // MODIFY THE MENU TO REFLECT THE DATA PRESENT
         // set the text based on if the network is blacklisted.
-        val rGetter = Resources.getSystem()
         val blackList : MenuItem = popup.menu.findItem(R.id.blacklistOption)
         if (n.networkDB != null) {
             if (n.networkDB.blacklisted) {
-                blackList.title = rGetter.getString(R.string.unblacklist_prompt)
+                blackList.title = c.getString(R.string.unblacklist_prompt)
                 blackList.setOnMenuItemClickListener {
                     if (c.applicationContext is Application) {
                         // modify the network to update the database
@@ -215,7 +223,7 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
                 }
             }
             else {
-                blackList.title = rGetter.getString(R.string.blacklist_prompt)
+                blackList.title = c.getString(R.string.blacklist_prompt)
                 blackList.setOnMenuItemClickListener {
                     if (c.applicationContext is Application) {
                         // modify the network to update the database
@@ -233,7 +241,7 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
         }
         else {
             // let the user blacklist BEFORE ever collecting data
-            blackList.title = rGetter.getString(R.string.blacklist_prompt)
+            blackList.title = c.getString(R.string.blacklist_prompt)
             blackList.setOnMenuItemClickListener {
                 if (c.applicationContext is Application) {
                     // modify the network to update the database
