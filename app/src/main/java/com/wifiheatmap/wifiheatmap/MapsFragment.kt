@@ -13,6 +13,9 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.NavController
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.ui.NavigationUI
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -179,13 +182,13 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
      */
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (item.itemId == R.id.db_manager_nav_button) {
-            // TODO navigate to the DatabaseManagementFragment
-            // Toast for now
-            Toast.makeText(this.context, "This is where I would navigate, if I could.", Toast.LENGTH_SHORT).show()
+            // navigate to the database management fragment
+            findNavController().navigate(MapsFragmentDirections.actionMapsFragmentToDatabaseManagementFragment())
+            return true
         } else {
             Timber.e("Unrecognized options item: %s", item.itemId)
+            return false
         }
-        return false
     }
 
     override fun onMapReady(googleMap: GoogleMap) {
