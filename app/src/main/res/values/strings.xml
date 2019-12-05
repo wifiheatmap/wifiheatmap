@@ -20,4 +20,5 @@
     <string name="date_range">Date Range:</string>
     <string name="start_date">Start Date</string>
     <string name="end_date">End Date</string>
+    <string name="db_nav_prompt">Manage Data</string>
 </resources>

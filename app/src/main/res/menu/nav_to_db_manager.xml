@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/db_manager_nav_button"
+        android:enabled="true"
+        android:title="@string/db_nav_prompt"
+        android:visible="true"
+        app:showAsAction="always" />
+</menu>
