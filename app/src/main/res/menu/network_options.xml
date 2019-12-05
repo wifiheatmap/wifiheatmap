@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/delete_option"
+        android:title="@string/delete_network_data" />
+    <item
+        android:id="@+id/blacklistOption"
+        android:title="@string/blacklist_prompt" />
+</menu>

@@ -50,4 +50,8 @@ class ViewModel(app: Application): AndroidViewModel(app) {
         repo.deleteData(data)
     }
 
+    fun getRecordExists(ssid: String): LiveData<Boolean> {
+        return repo.getRecordExists(ssid)
+    }
+
 }
