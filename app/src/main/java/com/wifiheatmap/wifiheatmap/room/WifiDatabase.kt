@@ -6,7 +6,7 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [Network::class, Data::class], version = 1)
+@Database(entities = [Network::class, Data::class], version = 2)
 @TypeConverters(DateConverter::class)
 abstract class WifiDatabase: RoomDatabase() {
     abstract fun dataAccessObject(): DataAccessObject
@@ -14,7 +14,8 @@ abstract class WifiDatabase: RoomDatabase() {
         private var instance: WifiDatabase? = null
         fun getInstance(context: Context): WifiDatabase {
             if(instance == null) {
-                instance = Room.databaseBuilder(context, WifiDatabase::class.java, "wifi_db").build()
+                // TODO remove fallbackToDestructiveMigration
+                instance = Room.databaseBuilder(context, WifiDatabase::class.java, "wifi_db").fallbackToDestructiveMigration().build()
             }
             return instance as WifiDatabase
         }

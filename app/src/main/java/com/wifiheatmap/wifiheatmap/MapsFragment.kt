@@ -4,15 +4,18 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.util.Log
+import android.view.*
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
+import androidx.navigation.NavController
+import androidx.navigation.fragment.findNavController
+import androidx.navigation.ui.NavigationUI
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -26,6 +29,7 @@ import com.google.maps.android.heatmaps.Gradient
 import com.google.maps.android.heatmaps.HeatmapTileProvider
 import com.google.maps.android.heatmaps.WeightedLatLng
 import com.wifiheatmap.wifiheatmap.databinding.MapsFragmentBinding
+import timber.log.Timber
 
 private const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
@@ -145,7 +149,46 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
             }
         }
 
-        return binding.contraintLayout
+        // add the options menu which navigates to the database management fragment
+        setHasOptionsMenu(true)
+
+        return binding.root
+    }
+
+    /**
+     * Initialize the contents of the fragment standard options menu.
+     * This options menu will allow navigation to the database management fragment.
+     *
+     * @param menu The options menu of the fragment.
+     * @param inflater The [MenuInflater] with which we will inflate the XML
+     *
+     * @see .setHasOptionsMenu
+     * @see .onPrepareOptionsMenu
+     * @see .onOptionsItemSelected
+     */
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        val menuItem = menu.add(Menu.NONE, R.id.db_manager_nav_button, Menu.NONE, R.string.db_nav_prompt)
+        menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+    }
+
+    /**
+     * Handles the event where the user presses a button in our standard options menu.
+     * @param item The menu item that was selected.
+     *
+     * @return a [Boolean] indicating if the event was processed successfully.
+     *
+     * @see .onCreateOptionsMenu
+     */
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        if (item.itemId == R.id.db_manager_nav_button) {
+            // navigate to the database management fragment
+            findNavController().navigate(MapsFragmentDirections.actionMapsFragmentToDatabaseManagementFragment())
+            return true
+        } else {
+            Timber.e("Unrecognized options item: %s", item.itemId)
+            return false
+        }
     }
 
     override fun onMapReady(googleMap: GoogleMap) {

@@ -1,10 +1,24 @@
 <?xml version="1.0" encoding="utf-8"?>
 <navigation xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/navigation"
     app:startDestination="@id/mapsFragment">
     <fragment
         android:id="@+id/mapsFragment"
         android:name="com.wifiheatmap.wifiheatmap.MapsFragment"
-        android:label="MapsFragment" />
+        android:label="MapsFragment" >
+        <action
+            android:id="@+id/action_mapsFragment_to_databaseManagementFragment"
+            app:destination="@id/databaseManagementFragment"
+            app:enterAnim="@anim/nav_default_enter_anim"
+            app:exitAnim="@anim/nav_default_exit_anim"
+            app:popEnterAnim="@anim/nav_default_pop_enter_anim"
+            app:popExitAnim="@anim/nav_default_pop_exit_anim" />
+    </fragment>
+    <fragment
+        android:id="@+id/databaseManagementFragment"
+        android:name="com.wifiheatmap.wifiheatmap.DatabaseManagementFragment"
+        android:label="fragment_db_management"
+        tools:layout="@layout/fragment_db_management" />
 </navigation>
