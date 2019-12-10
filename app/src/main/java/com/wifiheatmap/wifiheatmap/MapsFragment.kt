@@ -35,6 +35,8 @@ private const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
 class MapsFragment : Fragment(), OnMapReadyCallback {
 
+    private var viewNetwork: String = ""
+
     private lateinit var mapsViewModel: MapsViewModel
     private lateinit var roomViewModel: ViewModel
     private lateinit var binding: MapsFragmentBinding
@@ -58,6 +60,8 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
         binding = DataBindingUtil.inflate(inflater, R.layout.maps_fragment, container, false)
 
         mapsViewModel = ViewModelProviders.of(requireActivity()).get(MapsViewModel::class.java)
+
+
 
         mapsViewModel.isDarkModeEnabled.observe(this, Observer { isEnabled ->
             if (isEnabled) {
@@ -297,5 +301,9 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
         if (!locationUpdateState) {
             startLocationUpdates()
         }
+    }
+
+    fun updateViewNetwork(networkSSID: String) {
+        viewNetwork = networkSSID
     }
 }

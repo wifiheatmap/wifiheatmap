@@ -10,5 +10,6 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
     val isColorBlindModeEnabled = MutableLiveData<Boolean>(false)
     val startDate = MutableLiveData<String>("")
     val endDate = MutableLiveData<String>("")
+    var viewNetwork: String = ""
 
 }
