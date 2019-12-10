@@ -88,7 +88,6 @@ class MainActivity : AppCompatActivity() {
                 val nonDuplicatedResults2 : List<ScanResult> = scanResultManager
                     .removeDuplicatesFromScanResults(results)
 
-                Toast.makeText(context, "in WifiReceiver!", Toast.LENGTH_SHORT).show()
 
                 // call that callback function passing the list of scan results
                 scl.onScanResultsAvailable(nonDuplicatedResults2)
@@ -97,7 +96,6 @@ class MainActivity : AppCompatActivity() {
 
         registerReceiver(wifiReceiver, IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION))
         wifiManager.startScan()
-        Toast.makeText(this, "Scanning WiFi ... ", Toast.LENGTH_SHORT).show()
 
     }
 }

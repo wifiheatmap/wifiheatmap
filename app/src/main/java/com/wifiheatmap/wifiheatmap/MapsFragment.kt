@@ -43,7 +43,6 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
 
     private lateinit var mapsViewModel: MapsViewModel
     private lateinit var viewModel: ViewModel
-    private lateinit var roomViewModel: ViewModel
     private lateinit var binding: MapsFragmentBinding
     private var map: GoogleMap? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -133,9 +132,16 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
                 }
             } else {
                 // on play
+
+                // For testing, will need changed for production
+                if(networkList?.size ?: 0 > 0) {
+                    setNetwork(networkList!![0])
+                }
+
                 locationUpdateState = true
                 startLocationUpdates()
                 updateWifi()
+                scheduleHeatMapRefresh()
                 context?.let {
                     binding.playPauseFab.setImageDrawable(
                         ContextCompat.getDrawable(
@@ -156,6 +162,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
                 lastLocation = locationResult.lastLocation
+                Toast.makeText(activity, "${lastLocation.latitude}, ${lastLocation.longitude}", Toast.LENGTH_LONG).show()
             }
         }
 
@@ -293,6 +300,27 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
 
     }
 
+    private fun scheduleHeatMapRefresh() {
+        val delay: Double = (mapsViewModel.refreshRate.value ?: 10.0) * 1000.0
+        android.os.Handler().postDelayed(
+            {
+                val data = wifiLiveData?.value
+                if(data != null) {
+                    heatmapData.clear()
+                    for(datum in data) {
+                        val point = WeightedLatLng(LatLng(datum.latitude, datum.longitude), datum.intensity.toDouble())
+                        heatmapData.add(point)
+                    }
+                    updateHeatMap()
+                }
+                if(locationUpdateState) {
+                    scheduleHeatMapRefresh()
+                }
+            },
+            delay.toLong()
+        )
+    }
+
     private fun updateWifi()
     {
         class ScanListener : MainActivity.ScanResultListener {
@@ -308,7 +336,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
                     val data = Data(0, network.id, lastLocation.latitude, lastLocation.longitude, result.level, Date())
                     viewModel.insertData(data)
                 }
-                if(locationUpdateState == true) {
+                if(locationUpdateState) {
                     updateWifi()
                 }
             }
@@ -319,13 +347,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
     }
 
     override fun onChanged(t: List<Data>?) {
-        val data = t ?: return
-        heatmapData.clear()
-        for(datum in data) {
-            val point = WeightedLatLng(LatLng(datum.latitude, datum.longitude), datum.intensity.toDouble())
-            heatmapData.add(point)
-        }
-        updateHeatMap()
+
     }
 
     private fun updateHeatMap() {
