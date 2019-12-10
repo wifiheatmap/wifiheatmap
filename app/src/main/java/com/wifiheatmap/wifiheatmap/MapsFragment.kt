@@ -3,6 +3,7 @@ package com.wifiheatmap.wifiheatmap
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
+import android.net.wifi.ScanResult
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -11,6 +12,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.NavController
@@ -29,13 +31,18 @@ import com.google.maps.android.heatmaps.Gradient
 import com.google.maps.android.heatmaps.HeatmapTileProvider
 import com.google.maps.android.heatmaps.WeightedLatLng
 import com.wifiheatmap.wifiheatmap.databinding.MapsFragmentBinding
+import com.wifiheatmap.wifiheatmap.room.Data
+import com.wifiheatmap.wifiheatmap.room.Network
 import timber.log.Timber
+import java.util.*
+import kotlin.collections.ArrayList
 
 private const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
-class MapsFragment : Fragment(), OnMapReadyCallback {
+class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
 
     private lateinit var mapsViewModel: MapsViewModel
+    private lateinit var viewModel: ViewModel
     private lateinit var roomViewModel: ViewModel
     private lateinit var binding: MapsFragmentBinding
     private var map: GoogleMap? = null
@@ -48,6 +55,11 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
 
     private var locationUpdateState: Boolean = false
     private val heatmapData = ArrayList<WeightedLatLng>()
+
+    private var wifiLiveData: LiveData<List<Data>>? = null
+    private var currentNetwork: Network? = null
+
+    private var networkList: List<Network>? = null
 
     private val settingsDialog = SettingsDialog()
 
@@ -66,6 +78,12 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
                 map?.setMapStyle(MapStyleOptions.loadRawResourceStyle(context, R.raw.default_map))
             }
         })
+
+        viewModel = ViewModelProviders.of(requireActivity()).get(ViewModel::class.java)
+
+        viewModel.getNetworks().observeForever {
+            networkList = it
+        }
 
         mapsViewModel.isColorBlindModeEnabled.observe(this, Observer { isEnabled ->
             if (isEnabled) {
@@ -117,6 +135,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
                 // on play
                 locationUpdateState = true
                 startLocationUpdates()
+                updateWifi()
                 context?.let {
                     binding.playPauseFab.setImageDrawable(
                         ContextCompat.getDrawable(
@@ -137,15 +156,6 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
                 lastLocation = locationResult.lastLocation
-                heatmapData.add(
-                    WeightedLatLng(
-                        LatLng(
-                            lastLocation.latitude,
-                            lastLocation.longitude
-                        )
-                    )
-                )
-                updateHeatMap()
             }
         }
 
@@ -260,6 +270,62 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
             }
         }
 
+    }
+
+    private fun getNetworkIfExists(ssid: String): Network? {
+        val networks = networkList ?: return null
+        for(network in networks) {
+            if(network.ssid == ssid) {
+                return network
+            }
+        }
+        return null
+    }
+
+    private fun setNetwork(network: Network) {
+        currentNetwork = network
+        if(wifiLiveData != null) {
+            wifiLiveData!!.removeObserver(this)
+        }
+        wifiLiveData = viewModel.getData(network.id)
+        wifiLiveData!!.observeForever(this)
+
+
+    }
+
+    private fun updateWifi()
+    {
+        class ScanListener : MainActivity.ScanResultListener {
+            override fun onScanResultsAvailable(results: List<ScanResult>) {
+                for(result in results) {
+                    val network = getNetworkIfExists(result.SSID)
+                    //Problem: what if the network doesn't exist yet? Temp solution: insert network and disregard data until it exists
+                    if(network == null) {
+                        val newNetwork = Network(0, result.SSID, false)
+                        viewModel.insertNetwork(newNetwork)
+                        continue
+                    }
+                    val data = Data(0, network.id, lastLocation.latitude, lastLocation.longitude, result.level, Date())
+                    viewModel.insertData(data)
+                }
+                if(locationUpdateState == true) {
+                    updateWifi()
+                }
+            }
+        }
+        val mainActivity = this.activity as MainActivity
+        val scanListener = ScanListener()
+        mainActivity.scanWifi(scanListener)
+    }
+
+    override fun onChanged(t: List<Data>?) {
+        val data = t ?: return
+        heatmapData.clear()
+        for(datum in data) {
+            val point = WeightedLatLng(LatLng(datum.latitude, datum.longitude), datum.intensity.toDouble())
+            heatmapData.add(point)
+        }
+        updateHeatMap()
     }
 
     private fun updateHeatMap() {
