@@ -22,16 +22,16 @@ class ViewModel(app: Application): AndroidViewModel(app) {
         return repo.getNetworks()
     }
 
-    fun getData(networkId: Int): LiveData<List<Data>> {
-        return repo.getData(networkId)
+    fun getData(networkSsid: String): LiveData<List<Data>> {
+        return repo.getData(networkSsid)
     }
 
-    fun getData(networkId: Int, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double): LiveData<List<Data>> {
-        return repo.getData(networkId, minLatitude, minLongitude, maxLatitude, maxLongitude)
+    fun getData(networkSsid: String, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double): LiveData<List<Data>> {
+        return repo.getData(networkSsid, minLatitude, minLongitude, maxLatitude, maxLongitude)
     }
 
-    fun getData(networkId: Int, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double, minDate: Date, maxDate: Date): LiveData<List<Data>> {
-        return repo.getData(networkId, minLatitude, minLongitude, maxLatitude, maxLongitude, minDate, maxDate)
+    fun getData(networkSsid: String, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double, minDate: Date, maxDate: Date): LiveData<List<Data>> {
+        return repo.getData(networkSsid, minLatitude, minLongitude, maxLatitude, maxLongitude, minDate, maxDate)
     }
 
     fun insertNetwork(network: Network) {

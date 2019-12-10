@@ -213,7 +213,7 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
                     if (c.applicationContext is Application) {
                         // modify the network to update the database
                         // so that the blacklisted condition is removed.
-                        val newNetwork = Network(n.networkDB.id, n.networkDB.ssid, false)
+                        val newNetwork = Network(n.networkDB.ssid, false)
                         ViewModel(c.applicationContext as Application).insertNetwork(newNetwork)
                         // refresh the recyclerView to reflect changes.
                         notifyDataSetChanged()
@@ -229,7 +229,7 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
                     if (c.applicationContext is Application) {
                         // modify the network to update the database
                         // so that
-                        val newNetwork = Network(n.networkDB.id, n.networkDB.ssid, true)
+                        val newNetwork = Network(n.networkDB.ssid, true)
                         ViewModel(c.applicationContext as Application).insertNetwork(newNetwork)
                         // refresh the recyclerView to reflect changes.
                         notifyDataSetChanged()
@@ -247,7 +247,7 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
                 if (c.applicationContext is Application) {
                     // modify the network to update the database
                     // so that the network is blacklisted.
-                    val newNetwork = Network(0, n.scanResult!!.SSID, true)
+                    val newNetwork = Network(n.scanResult!!.SSID, true)
                     ViewModel(c.applicationContext as Application).insertNetwork(newNetwork)
                     // refresh the recyclerView to reflect changes.
                     notifyDataSetChanged()
@@ -267,7 +267,7 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
             deleteOption.setOnMenuItemClickListener {
                 if (c.applicationContext is Application) {
                     // add a network without any other data with blacklisted set to true.
-                    val newNetwork = Network(0, n.networkDB.ssid, true)
+                    val newNetwork = Network(n.networkDB.ssid, true)
                     ViewModel(c.applicationContext as Application).insertNetwork(newNetwork)
                     notifyDataSetChanged()
                     return@setOnMenuItemClickListener true

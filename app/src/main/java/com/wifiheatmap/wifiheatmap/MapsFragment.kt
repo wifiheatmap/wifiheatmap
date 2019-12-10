@@ -294,7 +294,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
         if(wifiLiveData != null) {
             wifiLiveData!!.removeObserver(this)
         }
-        wifiLiveData = viewModel.getData(network.id)
+        wifiLiveData = viewModel.getData(network.ssid)
         wifiLiveData!!.observeForever(this)
 
         updateHeatMap()
@@ -322,12 +322,12 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
                     //Problem: what if the network doesn't exist yet? Temp solution: insert network and disregard data until it exists
                     if(network == null) {
                         if(networkList != null) {
-                            val newNetwork = Network(0, result.SSID, false)
+                            val newNetwork = Network(result.SSID, false)
                             viewModel.insertNetwork(newNetwork)
                         }
                         continue
                     }
-                    val data = Data(0, network.id, lastLocation.latitude, lastLocation.longitude, result.level, Date())
+                    val data = Data(0, network.ssid, lastLocation.latitude, lastLocation.longitude, result.level, Date())
                     viewModel.insertData(data)
                 }
                 if(locationUpdateState) {
