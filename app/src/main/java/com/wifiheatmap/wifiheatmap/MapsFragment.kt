@@ -4,7 +4,6 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
@@ -30,6 +29,7 @@ import com.google.maps.android.heatmaps.HeatmapTileProvider
 import com.google.maps.android.heatmaps.WeightedLatLng
 import com.wifiheatmap.wifiheatmap.databinding.MapsFragmentBinding
 import timber.log.Timber
+import kotlin.math.pow
 
 private const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
@@ -201,10 +201,9 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
                 lastLocation = it
                 val currentLatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
                 map?.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 20.0f))
+                updateHeatMap()
             }
         }
-
-        updateHeatMap()
     }
 
     private fun getPermission() {
@@ -269,6 +268,21 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
             tileOverlay =
                 map?.addTileOverlay(TileOverlayOptions().tileProvider(heatmapTileProvider))
         }
+        // calculate a radius based on the zoom level
+        var zoomLevel : Int? = null
+        if (map != null) {
+            val zoomPercentage = map!!.cameraPosition.zoom / map!!.maxZoomLevel
+            // the magic number is the radius of each point when we are zoomed in as much as possible.
+            zoomLevel = (40.0 * zoomPercentage.pow(map!!.maxZoomLevel - map!!.cameraPosition.zoom)).toInt()
+            // enforce a minimum to prevent divide by zero errors
+            if (zoomLevel < 1) {
+                zoomLevel = 1
+            }
+            // If needed, show the radius of our points as a toast for debugging.
+            // Toast.makeText(this.context, zoomLevel.toString(), Toast.LENGTH_SHORT).show()
+            Timber.d("Radius of each point: %s", zoomLevel)
+        }
+        heatmapTileProvider?.setRadius(zoomLevel ?: 10)
         heatmapTileProvider?.setWeightedData(heatmapData)
         tileOverlay?.clearTileCache()
     }
