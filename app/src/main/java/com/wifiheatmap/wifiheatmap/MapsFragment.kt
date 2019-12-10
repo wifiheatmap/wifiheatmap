@@ -329,8 +329,10 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
                     val network = getNetworkIfExists(result.SSID)
                     //Problem: what if the network doesn't exist yet? Temp solution: insert network and disregard data until it exists
                     if(network == null) {
-                        val newNetwork = Network(0, result.SSID, false)
-                        viewModel.insertNetwork(newNetwork)
+                        if(networkList != null) {
+                            val newNetwork = Network(0, result.SSID, false)
+                            viewModel.insertNetwork(newNetwork)
+                        }
                         continue
                     }
                     val data = Data(0, network.id, lastLocation.latitude, lastLocation.longitude, result.level, Date())
