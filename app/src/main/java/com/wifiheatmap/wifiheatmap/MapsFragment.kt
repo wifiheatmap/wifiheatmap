@@ -297,22 +297,14 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
         wifiLiveData = viewModel.getData(network.id)
         wifiLiveData!!.observeForever(this)
 
-
+        updateHeatMap()
     }
 
     private fun scheduleHeatMapRefresh() {
         val delay: Double = (mapsViewModel.refreshRate.value ?: 10.0) * 1000.0
         android.os.Handler().postDelayed(
             {
-                val data = wifiLiveData?.value
-                if(data != null) {
-                    heatmapData.clear()
-                    for(datum in data) {
-                        val point = WeightedLatLng(LatLng(datum.latitude, datum.longitude), datum.intensity.toDouble())
-                        heatmapData.add(point)
-                    }
-                    updateHeatMap()
-                }
+                updateHeatMap()
                 if(locationUpdateState) {
                     scheduleHeatMapRefresh()
                 }
@@ -353,6 +345,16 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
     }
 
     private fun updateHeatMap() {
+
+        val data = wifiLiveData?.value
+        if(data != null) {
+            heatmapData.clear()
+            for(datum in data) {
+                val point = WeightedLatLng(LatLng(datum.latitude, datum.longitude), datum.intensity.toDouble())
+                heatmapData.add(point)
+            }
+        }
+
         if (heatmapTileProvider == null && heatmapData.isNotEmpty()) {
             heatmapTileProvider =
                 HeatmapTileProvider.Builder().radius(10).weightedData(heatmapData).build()
