@@ -5,7 +5,6 @@ import android.graphics.Color
 import android.location.Location
 import android.net.wifi.ScanResult
 import android.os.Bundle
-import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
@@ -36,10 +35,13 @@ import com.wifiheatmap.wifiheatmap.room.Network
 import timber.log.Timber
 import java.util.*
 import kotlin.collections.ArrayList
+import kotlin.math.pow
 
 private const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
 class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
+
+    private var viewNetwork: String = ""
 
     private lateinit var mapsViewModel: MapsViewModel
     private lateinit var viewModel: ViewModel
@@ -69,6 +71,8 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
         binding = DataBindingUtil.inflate(inflater, R.layout.maps_fragment, container, false)
 
         mapsViewModel = ViewModelProviders.of(requireActivity()).get(MapsViewModel::class.java)
+
+
 
         mapsViewModel.isDarkModeEnabled.observe(this, Observer { isEnabled ->
             if (isEnabled) {
@@ -218,10 +222,9 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
                 lastLocation = it
                 val currentLatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
                 map?.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 20.0f))
+                updateHeatMap()
             }
         }
-
-        updateHeatMap()
     }
 
     private fun getPermission() {
@@ -362,6 +365,21 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
             tileOverlay =
                 map?.addTileOverlay(TileOverlayOptions().tileProvider(heatmapTileProvider))
         }
+        // calculate a radius based on the zoom level
+        var zoomLevel : Int? = null
+        if (map != null) {
+            val zoomPercentage = map!!.cameraPosition.zoom / map!!.maxZoomLevel
+            // the magic number is the radius of each point when we are zoomed in as much as possible.
+            zoomLevel = (40.0 * zoomPercentage.pow(map!!.maxZoomLevel - map!!.cameraPosition.zoom)).toInt()
+            // enforce a minimum to prevent divide by zero errors
+            if (zoomLevel < 1) {
+                zoomLevel = 1
+            }
+            // If needed, show the radius of our points as a toast for debugging.
+            // Toast.makeText(this.context, zoomLevel.toString(), Toast.LENGTH_SHORT).show()
+            Timber.d("Radius of each point: %s", zoomLevel)
+        }
+        heatmapTileProvider?.setRadius(zoomLevel ?: 10)
         heatmapTileProvider?.setWeightedData(heatmapData)
         tileOverlay?.clearTileCache()
     }
@@ -376,5 +394,9 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
         if (!locationUpdateState) {
             startLocationUpdates()
         }
+    }
+
+    fun updateViewNetwork(networkSSID: String) {
+        viewNetwork = networkSSID
     }
 }

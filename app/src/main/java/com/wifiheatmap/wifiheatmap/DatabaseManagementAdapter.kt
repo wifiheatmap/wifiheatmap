@@ -29,8 +29,7 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
      */
     fun setNetworks(networksDB: List<Network>, scanResults: List<ScanResult>) {
         // clear the networks list and start from scratch
-        if (this.networks == null)
-        {
+        if (this.networks == null) {
             this.networks = mutableListOf(NetworkData(null, null))
         }
         this.networks!!.clear()
@@ -45,9 +44,9 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
             No NetworkData object can have both be null!!!
          */
 
-        for (wifi : ScanResult in scanResults) {
-            var matchedNetwork : Network? = null
-            for (network : Network in networksDB) {
+        for (wifi: ScanResult in scanResults) {
+            var matchedNetwork: Network? = null
+            for (network: Network in networksDB) {
                 if (network.ssid == wifi.SSID) {
                     matchedNetwork = network
                     break
@@ -57,17 +56,16 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
                 // we found matching SSIDs, store them together in
                 // the networks list.
                 this.networks!!.add(NetworkData(matchedNetwork, wifi))
-            }
-            else {
+            } else {
                 this.networks!!.add(NetworkData(null, wifi))
             }
         }
 
         // Now we have all matched networks and scan results without databases,
         // add all database entries that don't have matching scan results.
-        for (db : Network in networksDB) {
+        for (db: Network in networksDB) {
             var matchFound = false
-            for (scan : ScanResult in scanResults) {
+            for (scan: ScanResult in scanResults) {
                 if (scan.SSID == db.ssid) {
                     matchFound = true
                     break
@@ -137,14 +135,15 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
             strength.setBackgroundResource(getWifiStrengthIcon(network.scanResult?.level))
 
             // display if the network has a record in the database with data
-            val checkMark = holder.networkView.findViewById<ImageView>(R.id.network_record_indicator)
+            val checkMark =
+                holder.networkView.findViewById<ImageView>(R.id.network_record_indicator)
             val viewModel = ViewModel(checkMark.context.applicationContext as Application)
-            val liveData = viewModel.getRecordExists(network.scanResult?.SSID ?: network.networkDB!!.ssid)
-            liveData.observeForever{
+            val liveData =
+                viewModel.getRecordExists(network.scanResult?.SSID ?: network.networkDB!!.ssid)
+            liveData.observeForever {
                 if (it) {
                     checkMark.visibility = ImageView.VISIBLE
-                }
-                else {
+                } else {
                     // making it invisible will still take up space and apply margins so that we don't have issues that way.
                     checkMark.visibility = ImageView.INVISIBLE
                 }
@@ -154,15 +153,16 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
             val moreButton = holder.networkView.findViewById<ImageView>(R.id.more_button)
             moreButton.visibility = ImageView.VISIBLE
             moreButton.isClickable = true
-            moreButton.setOnClickListener{
+            moreButton.setOnClickListener {
                 showPopup(moreButton, moreButton.context, network)
             }
-        }
-        else {
+        } else {
             // Make nothing appear (although it will still take up space on the screen).
             holder.networkView.findViewById<TextView>(R.id.ssid_label).text = ""
-            holder.networkView.findViewById<ImageView>(R.id.wifi_strength).visibility = ImageView.INVISIBLE
-            holder.networkView.findViewById<ImageView>(R.id.network_record_indicator).visibility = ImageView.INVISIBLE
+            holder.networkView.findViewById<ImageView>(R.id.wifi_strength).visibility =
+                ImageView.INVISIBLE
+            holder.networkView.findViewById<ImageView>(R.id.network_record_indicator).visibility =
+                ImageView.INVISIBLE
             val moreButton = holder.networkView.findViewById<ImageView>(R.id.more_button)
             moreButton.visibility = ImageView.INVISIBLE
             moreButton.isClickable = false
@@ -175,7 +175,7 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
      * @return an [Int] which is the reference to the corresponding vector drawable.
      *         If the input is null, the default is an icon for the Wifi is off.
      */
-    private fun getWifiStrengthIcon(strength: Int?) : Int {
+    private fun getWifiStrengthIcon(strength: Int?): Int {
         return if (strength != null) {
             when (WifiManager.calculateSignalLevel(strength, 5)) {
                 0 -> R.drawable.ic_signal_wifi_0_bar_black_24dp
@@ -205,7 +205,7 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
         inflater.inflate(R.menu.network_options, popup.menu)
         // MODIFY THE MENU TO REFLECT THE DATA PRESENT
         // set the text based on if the network is blacklisted.
-        val blackList : MenuItem = popup.menu.findItem(R.id.blacklistOption)
+        val blackList: MenuItem = popup.menu.findItem(R.id.blacklistOption)
         if (n.networkDB != null) {
             if (n.networkDB.blacklisted) {
                 blackList.title = c.getString(R.string.unblacklist_prompt)
@@ -222,8 +222,7 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
                     // We didn't have the application context, so we couldn't use the database.
                     false
                 }
-            }
-            else {
+            } else {
                 blackList.title = c.getString(R.string.blacklist_prompt)
                 blackList.setOnMenuItemClickListener {
                     if (c.applicationContext is Application) {
@@ -239,8 +238,7 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
                     false
                 }
             }
-        }
-        else {
+        } else {
             // let the user blacklist BEFORE ever collecting data
             blackList.title = c.getString(R.string.blacklist_prompt)
             blackList.setOnMenuItemClickListener {
@@ -257,24 +255,31 @@ class DatabaseManagementAdapter : RecyclerView.Adapter<DatabaseManagementAdapter
                 false
             }
         }
+
         // setup the delete database option
-        if (n.networkDB == null) {
-            // Don't have the menu option to delete the data if the data is not there.
+        if (c.applicationContext is Application && n.networkDB != null) {
+            val viewModel = ViewModel(c.applicationContext as Application)
+            val liveData = viewModel.getRecordExists(n.scanResult?.SSID ?: n.networkDB!!.ssid)
+            liveData.observeForever {
+                if (it) {
+                    val deleteOption: MenuItem = popup.menu.findItem(R.id.delete_option)
+                    deleteOption.setOnMenuItemClickListener {
+                        // add a network without any other data with blacklisted set to true.
+                        val newNetwork = Network(n.networkDB.ssid, true)
+                        viewModel.deleteNetwork(n.networkDB)
+                        viewModel.insertNetwork(newNetwork)
+                        notifyDataSetChanged()
+                        return@setOnMenuItemClickListener true
+                    }
+                } else {
+                    popup.menu.removeItem(R.id.delete_option)
+                }
+            }
+        } else {
+            // we can't delete stuff, so don't give them the option to delete when we can't.
             popup.menu.removeItem(R.id.delete_option)
         }
-        else {
-            val deleteOption : MenuItem = popup.menu.findItem(R.id.delete_option)
-            deleteOption.setOnMenuItemClickListener {
-                if (c.applicationContext is Application) {
-                    // add a network without any other data with blacklisted set to true.
-                    val newNetwork = Network(n.networkDB.ssid, true)
-                    ViewModel(c.applicationContext as Application).insertNetwork(newNetwork)
-                    notifyDataSetChanged()
-                    return@setOnMenuItemClickListener true
-                }
-                false
-            }
-        }
+
         popup.show()
     }
 }
