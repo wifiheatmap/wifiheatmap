@@ -60,7 +60,6 @@ class MainActivity : AppCompatActivity() {
         drawerLayout = findViewById(R.id.drawerLayout)
         recyclerDrawerView = findViewById(R.id.drawerRecyclerView)
 
-
         var layoutManager1 = LinearLayoutManager(this)
         recyclerDrawerView.layoutManager = layoutManager1
         recyclerAdapter = MainDrawerAdapter()
