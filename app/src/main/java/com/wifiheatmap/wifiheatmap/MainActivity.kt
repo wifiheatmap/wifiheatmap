@@ -18,6 +18,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelProviders
+import androidx.lifecycle.get
 import androidx.navigation.NavController
 import androidx.navigation.NavDestination
 import androidx.navigation.findNavController
@@ -60,14 +61,17 @@ class MainActivity : AppCompatActivity() {
         drawerLayout = findViewById(R.id.drawerLayout)
         recyclerDrawerView = findViewById(R.id.drawerRecyclerView)
 
-
         var layoutManager1 = LinearLayoutManager(this)
         recyclerDrawerView.layoutManager = layoutManager1
         recyclerAdapter = MainDrawerAdapter()
         // create the Singleton MapsViewModel
-        mapsViewModel = MapsViewModel(this.application)
+        mapsViewModel = ViewModelProviders.of(this).get(MapsViewModel::class.java)
         // set the mapsViewModel to the Singleton MapsViewModel
         recyclerAdapter.mapsViewModel = mapsViewModel
+        // pass a reference to the drawerLayout so when
+        // an item is selected within it, it closes the
+        // drawer layout.
+        recyclerAdapter.drawerLayout = drawerLayout
 
         recyclerDrawerView.adapter = recyclerAdapter
 

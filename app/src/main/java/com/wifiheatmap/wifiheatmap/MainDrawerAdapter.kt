@@ -9,6 +9,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.core.os.bundleOf
 import androidx.core.view.isVisible
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.ViewModelProviders
@@ -18,6 +19,8 @@ import kotlinx.android.synthetic.main.network_selection_item.view.*
 import kotlinx.android.synthetic.main.network_selection_item_drawer.view.*
 
 class MainDrawerAdapter : RecyclerView.Adapter<MainDrawerAdapter.NetworkHolder>() {
+
+    public lateinit var drawerLayout: DrawerLayout
 
     // this is being set from the MainActivity when this MainDrawerAdapter is created.
     public lateinit var mapsViewModel: MapsViewModel
@@ -66,6 +69,7 @@ class MainDrawerAdapter : RecyclerView.Adapter<MainDrawerAdapter.NetworkHolder>(
         holder.itemView.setOnClickListener {
             // set the mapsViewModel viewNetwork (String) to the SSID of the tapped wifi item.
             mapsViewModel.viewNetwork = holder.itemView.ssid_label_drawer.text.toString()
+            this.drawerLayout.closeDrawers()
         }
 
 
