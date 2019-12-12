@@ -2,7 +2,7 @@ package com.wifiheatmap.wifiheatmap
 
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.action.ViewActions.click
-import androidx.test.espresso.matcher.ViewMatchers.withId
+import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.rule.ActivityTestRule
 import org.junit.Rule
@@ -18,13 +18,15 @@ class MainActivityTest {
     @Test
     fun testOpeningSettingsDialog() {
         onView(withId(R.id.settings_fab)).perform(click())
+        assert(withId(R.id.toggle_color_blind_switch).matches(isDisplayed()))
     }
 
     @Test
-    fun onCreate() {
+    fun testTogglingDarkMode(){
+        onView(withId(R.id.settings_fab)).perform(click())
+        onView(withId(R.id.toggle_dark_mode_switch)).perform(click())
+        onView(withText(R.string.apply)).perform(click())
+        assert(withId(R.id.map).matches(isDisplayed()))
     }
 
-    @Test
-    fun onSupportNavigateUp() {
-    }
 }
