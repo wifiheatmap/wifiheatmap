@@ -64,6 +64,8 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
 
     private val settingsDialog = SettingsDialog()
 
+    private var previousViewNetwork = ""
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -137,23 +139,26 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
             } else {
                 // on play
 
-                // For testing, will need changed for production
-                if(networkList?.size ?: 0 > 0) {
-                    setNetwork(networkList!![0].ssid)
+                if(mapsViewModel.viewNetwork == "") {
+                    Toast.makeText(this.context, "Please select a network", Toast.LENGTH_SHORT).show()
+                    val mainActivity = this.activity as MainActivity
+                    mainActivity.openDrawer()
+                } else {
+                    setNetwork(mapsViewModel.viewNetwork)
+                    locationUpdateState = true
+                    startLocationUpdates()
+                    updateWifi()
+                    scheduleHeatMapRefresh()
+                    context?.let {
+                        binding.playPauseFab.setImageDrawable(
+                            ContextCompat.getDrawable(
+                                it,
+                                R.drawable.ic_pause_white_24dp
+                            )
+                        )
+                    }
                 }
 
-                locationUpdateState = true
-                startLocationUpdates()
-                updateWifi()
-                scheduleHeatMapRefresh()
-                context?.let {
-                    binding.playPauseFab.setImageDrawable(
-                        ContextCompat.getDrawable(
-                            it,
-                            R.drawable.ic_pause_white_24dp
-                        )
-                    )
-                }
             }
         }
 
@@ -293,6 +298,8 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
     }
 
     private fun setNetwork(ssid: String) {
+        if(previousViewNetwork == ssid) return
+        previousViewNetwork = ssid
         val network = getNetworkIfExists(ssid) ?: return
         currentNetwork = network
         if(wifiLiveData != null) {
