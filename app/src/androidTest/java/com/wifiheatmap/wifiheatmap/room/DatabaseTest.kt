@@ -10,6 +10,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.*
 
 @RunWith(AndroidJUnit4::class)
 class DatabaseTest {
@@ -53,12 +54,12 @@ class DatabaseTest {
         Assert.assertEquals(await(dao.getNetworks())?.get(1), testNetwork2)
 
         val testData = arrayOf(
-            Data(1, 2, 12.0, 42.0, 15),
-            Data(2, 2, 1.0, 1.0, 16),
-            Data(3, 1, 2.0, 2.0, 13),
-            Data(4, 2, 3.0, 3.0, 14),
-            Data(5, 1, 4.0, 4.0, 10),
-            Data(6, 2, 5.0, 5.0, 10)
+            Data(1, 2, 12.0, 42.0, 15, Date()),
+            Data(2, 2, 1.0, 1.0, 16, Date()),
+            Data(3, 1, 2.0, 2.0, 13, Date()),
+            Data(4, 2, 3.0, 3.0, 14, Date()),
+            Data(5, 1, 4.0, 4.0, 10, Date()),
+            Data(6, 2, 5.0, 5.0, 10, Date())
         )
 
         val testNetworkTwoData = arrayOf(
