@@ -10,7 +10,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
     val isColorBlindModeEnabled = MutableLiveData<Boolean>(false)
     val startDate = MutableLiveData<String>("")
     val endDate = MutableLiveData<String>("")
-    val refreshRate = MutableLiveData<Double>(10.0)
+    val refreshRate = MutableLiveData<Double>(5.0)
     var viewNetwork: String = ""
 
 }

@@ -171,7 +171,6 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
                 lastLocation = locationResult.lastLocation
-                Toast.makeText(activity, "${lastLocation.latitude}, ${lastLocation.longitude}", Toast.LENGTH_LONG).show()
             }
         }
 
@@ -312,7 +311,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
     }
 
     private fun scheduleHeatMapRefresh() {
-        val delay: Double = (mapsViewModel.refreshRate.value ?: 10.0) * 1000.0
+        val delay: Double = (mapsViewModel.refreshRate.value ?: 5.0) * 1000.0
         android.os.Handler().postDelayed(
             {
                 updateHeatMap()
