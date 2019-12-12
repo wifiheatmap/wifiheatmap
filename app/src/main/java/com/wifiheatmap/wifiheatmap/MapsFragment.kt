@@ -70,11 +70,11 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        getPermission()
+
         binding = DataBindingUtil.inflate(inflater, R.layout.maps_fragment, container, false)
 
         mapsViewModel = ViewModelProviders.of(requireActivity()).get(MapsViewModel::class.java)
-
-
 
         mapsViewModel.isDarkModeEnabled.observe(this, Observer { isEnabled ->
             if (isEnabled) {
