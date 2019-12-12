@@ -3,6 +3,7 @@ package com.wifiheatmap.wifiheatmap
 import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
+import android.net.wifi.ScanResult
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
@@ -10,6 +11,7 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.navigation.NavController
@@ -28,17 +30,21 @@ import com.google.maps.android.heatmaps.Gradient
 import com.google.maps.android.heatmaps.HeatmapTileProvider
 import com.google.maps.android.heatmaps.WeightedLatLng
 import com.wifiheatmap.wifiheatmap.databinding.MapsFragmentBinding
+import com.wifiheatmap.wifiheatmap.room.Data
+import com.wifiheatmap.wifiheatmap.room.Network
 import timber.log.Timber
+import java.util.*
+import kotlin.collections.ArrayList
 import kotlin.math.pow
 
 private const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
-class MapsFragment : Fragment(), OnMapReadyCallback {
+class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
 
     private var viewNetwork: String = ""
 
     private lateinit var mapsViewModel: MapsViewModel
-    private lateinit var roomViewModel: ViewModel
+    private lateinit var viewModel: ViewModel
     private lateinit var binding: MapsFragmentBinding
     private var map: GoogleMap? = null
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -51,17 +57,24 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
     private var locationUpdateState: Boolean = false
     private val heatmapData = ArrayList<WeightedLatLng>()
 
+    private var wifiLiveData: LiveData<List<Data>>? = null
+    private var currentNetwork: Network? = null
+
+    private var networkList: List<Network>? = null
+
     private val settingsDialog = SettingsDialog()
+
+    private var previousViewNetwork = ""
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        getPermission()
+
         binding = DataBindingUtil.inflate(inflater, R.layout.maps_fragment, container, false)
 
         mapsViewModel = ViewModelProviders.of(requireActivity()).get(MapsViewModel::class.java)
-
-
 
         mapsViewModel.isDarkModeEnabled.observe(this, Observer { isEnabled ->
             if (isEnabled) {
@@ -70,6 +83,12 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
                 map?.setMapStyle(MapStyleOptions.loadRawResourceStyle(context, R.raw.default_map))
             }
         })
+
+        viewModel = ViewModelProviders.of(requireActivity()).get(ViewModel::class.java)
+
+        viewModel.getNetworks().observeForever {
+            networkList = it
+        }
 
         mapsViewModel.isColorBlindModeEnabled.observe(this, Observer { isEnabled ->
             if (isEnabled) {
@@ -119,16 +138,27 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
                 }
             } else {
                 // on play
-                locationUpdateState = true
-                startLocationUpdates()
-                context?.let {
-                    binding.playPauseFab.setImageDrawable(
-                        ContextCompat.getDrawable(
-                            it,
-                            R.drawable.ic_pause_white_24dp
+
+                if(mapsViewModel.viewNetwork == "") {
+                    Toast.makeText(this.context, "Please select a network", Toast.LENGTH_SHORT).show()
+                    val mainActivity = this.activity as MainActivity
+                    mainActivity.openDrawer()
+                } else {
+                    setNetwork(mapsViewModel.viewNetwork)
+                    locationUpdateState = true
+                    startLocationUpdates()
+                    updateWifi()
+                    scheduleHeatMapRefresh()
+                    context?.let {
+                        binding.playPauseFab.setImageDrawable(
+                            ContextCompat.getDrawable(
+                                it,
+                                R.drawable.ic_pause_white_24dp
+                            )
                         )
-                    )
+                    }
                 }
+
             }
         }
 
@@ -141,15 +171,6 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
             override fun onLocationResult(locationResult: LocationResult) {
                 super.onLocationResult(locationResult)
                 lastLocation = locationResult.lastLocation
-                heatmapData.add(
-                    WeightedLatLng(
-                        LatLng(
-                            lastLocation.latitude,
-                            lastLocation.longitude
-                        )
-                    )
-                )
-                updateHeatMap()
             }
         }
 
@@ -265,7 +286,85 @@ class MapsFragment : Fragment(), OnMapReadyCallback {
 
     }
 
+    private fun getNetworkIfExists(ssid: String): Network? {
+        val networks = networkList ?: return null
+        for(network in networks) {
+            if(network.ssid == ssid) {
+                return network
+            }
+        }
+        return null
+    }
+
+    private fun setNetwork(ssid: String) {
+        if(previousViewNetwork == ssid) return
+        previousViewNetwork = ssid
+        val network = getNetworkIfExists(ssid) ?: return
+        currentNetwork = network
+        if(wifiLiveData != null) {
+            wifiLiveData!!.removeObserver(this)
+        }
+        wifiLiveData = viewModel.getData(network.ssid)
+        wifiLiveData!!.observeForever(this)
+
+        updateHeatMap()
+    }
+
+    private fun scheduleHeatMapRefresh() {
+        val delay: Double = (mapsViewModel.refreshRate.value ?: 5.0) * 1000.0
+        android.os.Handler().postDelayed(
+            {
+                updateHeatMap()
+                if(locationUpdateState) {
+                    scheduleHeatMapRefresh()
+                }
+            },
+            delay.toLong()
+        )
+    }
+
+    private fun updateWifi()
+    {
+        class ScanListener : MainActivity.ScanResultListener {
+            override fun onScanResultsAvailable(results: List<ScanResult>) {
+                for(result in results) {
+                    val network = getNetworkIfExists(result.SSID)
+                    //Problem: what if the network doesn't exist yet? Temp solution: insert network and disregard data until it exists
+                    if(network == null) {
+                        if(networkList != null) {
+                            val newNetwork = Network(result.SSID, false)
+                            viewModel.insertNetwork(newNetwork)
+                        }
+                        continue
+                    }
+                    val data = Data(0, network.ssid, lastLocation.latitude, lastLocation.longitude, result.level, Date())
+                    viewModel.insertData(data)
+                }
+                if(locationUpdateState) {
+                    updateWifi()
+                }
+            }
+        }
+        val mainActivity = this.activity as MainActivity
+        val scanListener = ScanListener()
+        mainActivity.scanWifi(scanListener)
+    }
+
+    override fun onChanged(t: List<Data>?) {
+
+    }
+
     private fun updateHeatMap() {
+
+        val data = wifiLiveData?.value
+        if(data != null) {
+            heatmapData.clear()
+            for(datum in data) {
+                val point = WeightedLatLng(LatLng(datum.latitude, datum.longitude), datum.intensity.toDouble())
+                heatmapData.add(point)
+            }
+        }
+
         if (heatmapTileProvider == null && heatmapData.isNotEmpty()) {
             heatmapTileProvider =
                 HeatmapTileProvider.Builder().radius(10).weightedData(heatmapData).build()

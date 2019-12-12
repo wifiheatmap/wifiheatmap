@@ -17,16 +17,16 @@ class WifiRepository(app: Application) {
         return dataAccessObject.getNetworks();
     }
 
-    fun getData(networkId: Int): LiveData<List<Data>> {
-        return dataAccessObject.getData(networkId)
+    fun getData(networkSsid: String): LiveData<List<Data>> {
+        return dataAccessObject.getData(networkSsid)
     }
 
-    fun getData(networkId: Int, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double): LiveData<List<Data>> {
-        return dataAccessObject.getData(networkId, minLatitude, minLongitude, maxLatitude, maxLongitude)
+    fun getData(networkSsid: String, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double): LiveData<List<Data>> {
+        return dataAccessObject.getData(networkSsid, minLatitude, minLongitude, maxLatitude, maxLongitude)
     }
 
-    fun getData(networkId: Int, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double, minDate: Date, maxDate: Date): LiveData<List<Data>> {
-        return dataAccessObject.getData(networkId, minLatitude, minLongitude, maxLatitude, maxLongitude, minDate, maxDate)
+    fun getData(networkSsid: String, minLatitude: Double, minLongitude: Double, maxLatitude: Double, maxLongitude: Double, minDate: Date, maxDate: Date): LiveData<List<Data>> {
+        return dataAccessObject.getData(networkSsid, minLatitude, minLongitude, maxLatitude, maxLongitude, minDate, maxDate)
     }
 
     class AsyncInsertNetwork(val dataAccessObject: DataAccessObject): AsyncTask<Network, Void, Unit>() {

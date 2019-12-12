@@ -6,8 +6,7 @@ import androidx.room.PrimaryKey
 
 @Entity()
 data class Network (
-    @PrimaryKey(autoGenerate = true) val id: Int,
-    @ColumnInfo(name = "ssid")
+    @PrimaryKey()
     val ssid: String,
     @ColumnInfo(name = "blacklisted")
     val blacklisted: Boolean

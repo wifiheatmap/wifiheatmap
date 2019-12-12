@@ -13,6 +13,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentManager
@@ -131,10 +132,7 @@ class MainActivity : AppCompatActivity() {
 
                 val nonDuplicatedResults2 : List<ScanResult> = scanResultManager
                     .removeDuplicatesFromScanResults(results)
-                // var networks : List<Network>? = null
-                // recyclerAdapter.setNetworks(networks, nonDuplicatedResults2)
-                Toast.makeText(context, "in WifiReceiver!", Toast.LENGTH_SHORT).show()
-                // SET THE DRAWER LIST HERE
+
                 recyclerAdapter.setNetworks(nonDuplicatedResults2)
                 // call that callback function passing the list of scan results
                 scl.onScanResultsAvailable(nonDuplicatedResults2)
@@ -143,8 +141,11 @@ class MainActivity : AppCompatActivity() {
 
         registerReceiver(wifiReceiver, IntentFilter(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION))
         wifiManager.startScan()
-        Toast.makeText(this, "Scanning WiFi ... ", Toast.LENGTH_SHORT).show()
 
+    }
+
+    fun openDrawer() {
+        binding.drawerLayout.openDrawer(GravityCompat.START)
     }
 }
 
