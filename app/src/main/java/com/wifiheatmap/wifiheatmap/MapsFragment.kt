@@ -135,7 +135,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
 
                 // For testing, will need changed for production
                 if(networkList?.size ?: 0 > 0) {
-                    setNetwork(networkList!![0])
+                    setNetwork(networkList!![0].ssid)
                 }
 
                 locationUpdateState = true
@@ -289,7 +289,8 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
         return null
     }
 
-    private fun setNetwork(network: Network) {
+    private fun setNetwork(ssid: String) {
+        val network = getNetworkIfExists(ssid) ?: return
         currentNetwork = network
         if(wifiLiveData != null) {
             wifiLiveData!!.removeObserver(this)

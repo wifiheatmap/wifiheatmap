@@ -12,7 +12,7 @@ interface DataAccessObject {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     fun insertNetwork(vararg networks: Network?)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
     fun insertData(vararg data: Data?)
 
     @Delete
