@@ -386,6 +386,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
             Timber.d("Radius of each point: %s", zoomLevel)
         }
         heatmapTileProvider?.setRadius(zoomLevel ?: 10)
+        heatmapTileProvider?.setMaxIntensity(50.0) // based off of analysis of data as we put it in the database.
         heatmapTileProvider?.setWeightedData(heatmapData)
         tileOverlay?.clearTileCache()
     }
