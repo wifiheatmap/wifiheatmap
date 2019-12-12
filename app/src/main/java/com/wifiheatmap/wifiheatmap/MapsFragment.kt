@@ -4,6 +4,7 @@ import android.content.pm.PackageManager
 import android.graphics.Color
 import android.location.Location
 import android.net.wifi.ScanResult
+import android.net.wifi.WifiManager
 import android.os.Bundle
 import android.view.*
 import android.widget.Toast
@@ -42,6 +43,8 @@ private const val LOCATION_PERMISSION_REQUEST_CODE = 1
 class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
 
     private var viewNetwork: String = ""
+
+    private val MAX_INTENSITY = 10;
 
     private lateinit var mapsViewModel: MapsViewModel
     private lateinit var viewModel: ViewModel
@@ -337,7 +340,8 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
                         }
                         continue
                     }
-                    val data = Data(0, network.ssid, lastLocation.latitude, lastLocation.longitude, result.level, Date())
+                    val adjustedLevel = WifiManager.calculateSignalLevel(result.level, MAX_INTENSITY)
+                    val data = Data(0, network.ssid, lastLocation.latitude, lastLocation.longitude, adjustedLevel, Date())
                     viewModel.insertData(data)
                 }
                 if(locationUpdateState) {
@@ -386,7 +390,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
             Timber.d("Radius of each point: %s", zoomLevel)
         }
         heatmapTileProvider?.setRadius(zoomLevel ?: 10)
-        heatmapTileProvider?.setMaxIntensity(50.0) // based off of analysis of data as we put it in the database.
+        heatmapTileProvider?.setMaxIntensity(MAX_INTENSITY.toDouble())
         heatmapTileProvider?.setWeightedData(heatmapData)
         tileOverlay?.clearTileCache()
     }
