@@ -44,7 +44,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
 
     private var viewNetwork: String = ""
 
-    private val MAX_INTENSITY = 10;
+    private val MAX_INTENSITY = 10
 
     private lateinit var mapsViewModel: MapsViewModel
     private lateinit var viewModel: ViewModel
