@@ -7,7 +7,7 @@
     <fragment
         android:id="@+id/mapsFragment"
         android:name="com.wifiheatmap.wifiheatmap.MapsFragment"
-        android:label="MapsFragment" >
+        android:label="WiFi Strength Map">
         <action
             android:id="@+id/action_mapsFragment_to_databaseManagementFragment"
             app:destination="@id/databaseManagementFragment"
@@ -19,6 +19,6 @@
     <fragment
         android:id="@+id/databaseManagementFragment"
         android:name="com.wifiheatmap.wifiheatmap.DatabaseManagementFragment"
-        android:label="fragment_db_management"
+        android:label="Manage Data"
         tools:layout="@layout/fragment_db_management" />
 </navigation>
