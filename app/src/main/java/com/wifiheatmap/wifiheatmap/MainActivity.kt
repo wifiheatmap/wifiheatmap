@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.view.View
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.Toast
@@ -59,6 +60,8 @@ class MainActivity : AppCompatActivity() {
 
         binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         drawerLayout = findViewById(R.id.drawerLayout)
+
+
         recyclerDrawerView = findViewById(R.id.drawerRecyclerView)
 
         var layoutManager1 = LinearLayoutManager(this)
@@ -77,9 +80,8 @@ class MainActivity : AppCompatActivity() {
 
         var drawerRefreshButton = findViewById<Button>(R.id.refresh_drawer_network_list)
 
-        // when the REFRESH Button is tapped
-        // scan the wifi and then update the RecyclerAdapter.
-        drawerRefreshButton.setOnClickListener {
+        // Refreshes list of networks in the drawer view
+        val refreshNetworkList: (View) -> Unit = {
             class ScanListener : MainActivity.ScanResultListener {
                 override fun onScanResultsAvailable(results: List<ScanResult>) {
                     recyclerAdapter.setNetworks(results)
@@ -89,6 +91,21 @@ class MainActivity : AppCompatActivity() {
             val scanListener = ScanListener()
             scanWifi(scanListener)
         }
+
+        // when the REFRESH Button is tapped
+        drawerRefreshButton.setOnClickListener(refreshNetworkList)
+
+        // Refresh network list when drawer is first opened without need of pressing refresh button
+        drawerLayout.addDrawerListener(object: DrawerLayout.DrawerListener {
+            override fun onDrawerStateChanged(newState: Int) {}
+            override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
+            override fun onDrawerClosed(drawerView: View) {}
+
+            override fun onDrawerOpened(drawerView: View) {
+                refreshNetworkList(drawerLayout)
+            }
+
+        })
 
         navController = this.findNavController(R.id.nav_host_fragment)
         NavigationUI.setupActionBarWithNavController(this, navController, drawerLayout)

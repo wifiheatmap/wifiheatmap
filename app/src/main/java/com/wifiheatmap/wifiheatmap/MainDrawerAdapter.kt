@@ -109,7 +109,7 @@ class MainDrawerAdapter : RecyclerView.Adapter<MainDrawerAdapter.NetworkHolder>(
         } else {
             R.drawable.ic_signal_wifi_off_black_24dp // default value
         }
-        return 0;
+        return 0
     }
 
 }
