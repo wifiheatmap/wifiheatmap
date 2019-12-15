@@ -28,7 +28,7 @@ class MainDrawerAdapter : NetworkListAdapter() {
         // use the holder.itemVIew.ssid_label_drawer.text to get the SSID
         holder.itemView.setOnClickListener {
             // set the mapsViewModel viewNetwork (String) to the SSID of the tapped wifi item.
-            mapsViewModel.viewNetwork = holder.itemView.ssid_label_drawer.text.toString()
+            mapsViewModel.viewNetwork.value = holder.itemView.ssid_label_drawer.text.toString()
             this.drawerLayout.closeDrawers()
         }
 

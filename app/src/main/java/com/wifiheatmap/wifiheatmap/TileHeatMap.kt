@@ -8,6 +8,7 @@ import com.google.android.gms.maps.model.Polygon
 import com.google.android.gms.maps.model.PolygonOptions
 import com.google.maps.android.heatmaps.Gradient
 import com.wifiheatmap.wifiheatmap.room.Data
+import kotlin.math.absoluteValue
 import kotlin.math.sign
 
 class TileHeatMap(latitudeDivisions: Int) {
@@ -61,13 +62,15 @@ class TileHeatMap(latitudeDivisions: Int) {
     }
 
     private fun getTileId(latitude: Double, longitude: Double): ULong {
-        return (2*latitudeDivisions).toULong()*Math.floor(latitude/(180.0/latitudeDivisions)).toUInt() + Math.floor(longitude/(360.0/(2*latitudeDivisions))).toUInt()
+        return (2*latitudeDivisions).toULong()*Math.floor((latitude+90.0)/(180.0/latitudeDivisions)).toUInt() + Math.floor((longitude+180.0)/(360.0/(2*latitudeDivisions))).toUInt()
     }
 
     private fun createPolygon(map: GoogleMap, latitude: Double, longitude: Double): Polygon {
         val cellDiameter: Double = 180.0/latitudeDivisions.toDouble()
-        val minLatitude = latitude - latitude.rem(cellDiameter)
-        val minLongitude = longitude - longitude.rem(cellDiameter)
+        val lat = latitude + 90.0
+        val lon = longitude + 180.0
+        val minLatitude = (lat - lat.rem(cellDiameter).absoluteValue) - 90.0
+        val minLongitude = (lon - lon.rem(cellDiameter).absoluteValue) - 180.0
         val maxLatitude = minLatitude + cellDiameter
         val maxLongitude = minLongitude + cellDiameter
         return map.addPolygon(PolygonOptions()
@@ -77,6 +80,7 @@ class TileHeatMap(latitudeDivisions: Int) {
                 LatLng(maxLatitude, maxLongitude),
                 LatLng(minLatitude, maxLongitude)
             )
+            .strokeWidth(0f)
         )
     }
 

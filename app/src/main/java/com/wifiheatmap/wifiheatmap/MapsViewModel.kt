@@ -11,6 +11,6 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
     val startDate = MutableLiveData<String>("")
     val endDate = MutableLiveData<String>("")
     val refreshRate = MutableLiveData<Double>(5.0)
-    var viewNetwork: String = ""
+    var viewNetwork = MutableLiveData<String>("")
 
 }

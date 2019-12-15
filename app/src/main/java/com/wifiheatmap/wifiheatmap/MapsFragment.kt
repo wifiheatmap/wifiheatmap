@@ -50,7 +50,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
     private lateinit var locationCallback: LocationCallback
     private var locationRequest: LocationRequest? = null
 
-    private val tileHeatMap = TileHeatMap(999999)
+    private val tileHeatMap = TileHeatMap(9999999)
     private var heatMapRefreshNeeded = false
 
     private var locationUpdateState: Boolean = false
@@ -96,6 +96,12 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
             }
         })
 
+        mapsViewModel.viewNetwork.observe(this, Observer { network ->
+            if(network != null && network != "") {
+                setNetwork(network)
+            }
+        })
+
         binding.settingsFab.setOnClickListener {
             fragmentManager?.let {
                 settingsDialog.show(it, null)
@@ -119,12 +125,11 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
             } else {
                 // on play
 
-                if(mapsViewModel.viewNetwork == "") {
+                if(mapsViewModel.viewNetwork.value ?: "" == "") {
                     Toast.makeText(this.context, "Please select a network", Toast.LENGTH_SHORT).show()
                     val mainActivity = this.activity as MainActivity
                     mainActivity.openDrawer()
                 } else {
-                    setNetwork(mapsViewModel.viewNetwork)
                     locationUpdateState = true
                     startLocationUpdates()
                     updateWifi()
