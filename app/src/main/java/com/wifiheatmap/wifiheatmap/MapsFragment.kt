@@ -329,12 +329,17 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
             override fun onScanResultsAvailable(results: List<ScanResult>) {
                 for(result in results) {
                     val network = getNetworkIfExists(result.SSID)
-                    //Problem: what if the network doesn't exist yet? Temp solution: insert network and disregard data until it exists
+                    // network will be null if the network list isn't ready yet or if the current network doesn't exist in the database
                     if(network == null) {
+                        // if the networkList is not null we know that the reason network was null was because this was a network not in the database
                         if(networkList != null) {
                             val newNetwork = Network(result.SSID, false)
                             viewModel.insertNetwork(newNetwork)
                         }
+                        continue
+                    }
+                    // Don't collect data for a network that is blacklisted
+                    if(network.blacklisted) {
                         continue
                     }
                     val data = Data(0, network.ssid, lastLocation.latitude, lastLocation.longitude, result.level, Date())
