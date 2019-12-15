@@ -146,7 +146,7 @@ class TileHeatMap(latitudeDivisions: Int) {
     }
 
     /**
-     * Adds a data point to an existing heatmap. Only redraws tiles that have changed. 
+     * Adds a data point to an existing heatmap. Only redraws tiles that have changed.
      */
     fun addDataPoint(map: GoogleMap, data: Data) {
         val id = getTileId(data.latitude, data.longitude)
