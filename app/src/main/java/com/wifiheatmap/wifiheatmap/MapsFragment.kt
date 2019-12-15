@@ -41,8 +41,6 @@ private const val LOCATION_PERMISSION_REQUEST_CODE = 1
 
 class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
 
-    private var viewNetwork: String = ""
-
     private lateinit var mapsViewModel: MapsViewModel
     private lateinit var viewModel: ViewModel
     private lateinit var binding: MapsFragmentBinding
@@ -51,11 +49,11 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
     private lateinit var lastLocation: Location
     private lateinit var locationCallback: LocationCallback
     private var locationRequest: LocationRequest? = null
-    private var heatmapTileProvider: HeatmapTileProvider? = null
-    private var tileOverlay: TileOverlay? = null
+
+    private val tileHeatMap = TileHeatMap(9999999)
+    private var heatMapRefreshNeeded = false
 
     private var locationUpdateState: Boolean = false
-    private val heatmapData = ArrayList<WeightedLatLng>()
 
     private var wifiLiveData: LiveData<List<Data>>? = null
     private var currentNetwork: Network? = null
@@ -92,27 +90,15 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
 
         mapsViewModel.isColorBlindModeEnabled.observe(this, Observer { isEnabled ->
             if (isEnabled) {
-                heatmapTileProvider?.setGradient(
-                    Gradient(
-                        intArrayOf(
-                            Color.rgb(0, 0, 255),
-                            Color.rgb(255, 0, 0)
-                        ), floatArrayOf(
-                            0.2f, 1f
-                        )
-                    )
-                )
+                tileHeatMap.setHeatmapColor(Color.rgb(255, 225, 0), Color.rgb(100, 100, 255))
             } else {
-                heatmapTileProvider?.setGradient(
-                    Gradient(
-                        intArrayOf(
-                            Color.rgb(102, 225, 0),
-                            Color.rgb(255, 0, 0)
-                        ), floatArrayOf(
-                            0.2f, 1f
-                        )
-                    )
-                )
+                tileHeatMap.setHeatmapColor(Color.rgb(0, 0, 255), Color.rgb(255, 0, 0))
+            }
+        })
+
+        mapsViewModel.viewNetwork.observe(this, Observer { network ->
+            if(network != null && network != "") {
+                setNetwork(network)
             }
         })
 
@@ -139,16 +125,14 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
             } else {
                 // on play
 
-                if(mapsViewModel.viewNetwork == "") {
+                if(mapsViewModel.viewNetwork.value ?: "" == "") {
                     Toast.makeText(this.context, "Please select a network", Toast.LENGTH_SHORT).show()
                     val mainActivity = this.activity as MainActivity
                     mainActivity.openDrawer()
                 } else {
-                    setNetwork(mapsViewModel.viewNetwork)
                     locationUpdateState = true
                     startLocationUpdates()
                     updateWifi()
-                    scheduleHeatMapRefresh()
                     context?.let {
                         binding.playPauseFab.setImageDrawable(
                             ContextCompat.getDrawable(
@@ -226,7 +210,6 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
                 lastLocation = it
                 val currentLatLng = LatLng(lastLocation.latitude, lastLocation.longitude)
                 map?.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 20.0f))
-                updateHeatMap()
             }
         }
     }
@@ -296,6 +279,9 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
         return null
     }
 
+    /**
+     * Sets the network to be displayed as a heatmap on the map
+     */
     private fun setNetwork(ssid: String) {
         if(previousViewNetwork == ssid) return
         previousViewNetwork = ssid
@@ -307,20 +293,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
         wifiLiveData = viewModel.getData(network.ssid)
         wifiLiveData!!.observeForever(this)
 
-        updateHeatMap()
-    }
-
-    private fun scheduleHeatMapRefresh() {
-        val delay: Double = (mapsViewModel.refreshRate.value ?: 5.0) * 1000.0
-        android.os.Handler().postDelayed(
-            {
-                updateHeatMap()
-                if(locationUpdateState) {
-                    scheduleHeatMapRefresh()
-                }
-            },
-            delay.toLong()
-        )
+        heatMapRefreshNeeded = true
     }
 
     private fun updateWifi()
@@ -343,6 +316,9 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
                         continue
                     }
                     val data = Data(0, network.ssid, lastLocation.latitude, lastLocation.longitude, result.level, Date())
+                    if(network.ssid == currentNetwork?.ssid && map != null) {
+                        tileHeatMap.addDataPoint(map!!, data)
+                    }
                     viewModel.insertData(data)
                 }
                 if(locationUpdateState) {
@@ -356,43 +332,10 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
     }
 
     override fun onChanged(t: List<Data>?) {
-
-    }
-
-    private fun updateHeatMap() {
-
-        val data = wifiLiveData?.value
-        if(data != null) {
-            heatmapData.clear()
-            for(datum in data) {
-                val point = WeightedLatLng(LatLng(datum.latitude, datum.longitude), datum.intensity.toDouble())
-                heatmapData.add(point)
-            }
+        if(heatMapRefreshNeeded && t != null && map != null) {
+            tileHeatMap.createHeatmap(map!!, t)
+            heatMapRefreshNeeded = false
         }
-
-        if (heatmapTileProvider == null && heatmapData.isNotEmpty()) {
-            heatmapTileProvider =
-                HeatmapTileProvider.Builder().radius(10).weightedData(heatmapData).build()
-            tileOverlay =
-                map?.addTileOverlay(TileOverlayOptions().tileProvider(heatmapTileProvider))
-        }
-        // calculate a radius based on the zoom level
-        var zoomLevel : Int? = null
-        if (map != null) {
-            val zoomPercentage = map!!.cameraPosition.zoom / map!!.maxZoomLevel
-            // the magic number is the radius of each point when we are zoomed in as much as possible.
-            zoomLevel = (40.0 * zoomPercentage.pow(map!!.maxZoomLevel - map!!.cameraPosition.zoom)).toInt()
-            // enforce a minimum to prevent divide by zero errors
-            if (zoomLevel < 1) {
-                zoomLevel = 1
-            }
-            // If needed, show the radius of our points as a toast for debugging.
-            // Toast.makeText(this.context, zoomLevel.toString(), Toast.LENGTH_SHORT).show()
-            Timber.d("Radius of each point: %s", zoomLevel)
-        }
-        heatmapTileProvider?.setRadius(zoomLevel ?: 10)
-        heatmapTileProvider?.setWeightedData(heatmapData)
-        tileOverlay?.clearTileCache()
     }
 
     override fun onPause() {
@@ -405,9 +348,5 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
         if (!locationUpdateState) {
             startLocationUpdates()
         }
-    }
-
-    fun updateViewNetwork(networkSSID: String) {
-        viewNetwork = networkSSID
     }
 }
