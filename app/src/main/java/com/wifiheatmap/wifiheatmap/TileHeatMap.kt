@@ -16,7 +16,7 @@ import kotlin.math.sign
  */
 class TileHeatMap(latitudeDivisions: Int) {
     // Number of times the globe should be divided up into from the north to the south pole
-    private val latitudeDivisions = latitudeDivisions
+    var latitudeDivisions = latitudeDivisions
 
     // Colors to be used as the strongest and weakest signals
     private var weakSignalColor = Color.rgb(102, 225, 0)

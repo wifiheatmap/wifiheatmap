@@ -63,6 +63,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
     private val settingsDialog = SettingsDialog()
 
     private var previousViewNetwork = ""
+    private var lastDataUpdate: List<Data>? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -99,6 +100,15 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
         mapsViewModel.viewNetwork.observe(this, Observer { network ->
             if(network != null && network != "") {
                 setNetwork(network)
+            }
+        })
+
+        mapsViewModel.tileSize.observe(this, Observer { tileSize ->
+            if(tileSize != null) {
+                tileHeatMap.latitudeDivisions = ((1.0-tileSize)*9000000.0 + 999999.0).toInt()
+                if(lastDataUpdate != null && map != null) {
+                    tileHeatMap.createHeatmap(map!!, lastDataUpdate!!)
+                }
             }
         })
 
@@ -333,6 +343,7 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
 
     override fun onChanged(t: List<Data>?) {
         if(heatMapRefreshNeeded && t != null && map != null) {
+            lastDataUpdate = t
             tileHeatMap.createHeatmap(map!!, t)
             heatMapRefreshNeeded = false
         }

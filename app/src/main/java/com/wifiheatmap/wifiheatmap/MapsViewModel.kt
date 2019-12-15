@@ -11,6 +11,7 @@ class MapsViewModel(application: Application) : AndroidViewModel(application) {
     val startDate = MutableLiveData<String>("")
     val endDate = MutableLiveData<String>("")
     val refreshRate = MutableLiveData<Double>(5.0)
-    var viewNetwork = MutableLiveData<String>("")
+    val viewNetwork = MutableLiveData<String>("")
+    val tileSize = MutableLiveData<Double>(0.5)
 
 }
