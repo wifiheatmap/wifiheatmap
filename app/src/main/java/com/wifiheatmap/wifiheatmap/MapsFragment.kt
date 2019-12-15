@@ -91,9 +91,9 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
 
         mapsViewModel.isColorBlindModeEnabled.observe(this, Observer { isEnabled ->
             if (isEnabled) {
-                tileHeatMap.setHeatmapColor(Color.rgb(0, 0, 255), Color.rgb(255, 0, 0))
+                tileHeatMap.setHeatmapColor(Color.rgb(255, 225, 0), Color.rgb(100, 100, 255))
             } else {
-                tileHeatMap.setHeatmapColor(Color.rgb(102, 225, 0), Color.rgb(255, 0, 0))
+                tileHeatMap.setHeatmapColor(Color.rgb(0, 0, 255), Color.rgb(255, 0, 0))
             }
         })
 
