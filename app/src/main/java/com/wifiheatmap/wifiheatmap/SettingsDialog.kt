@@ -32,6 +32,8 @@ class SettingsDialog : DialogFragment() {
         binding.toggleColorBlindSwitch.isChecked = mapsViewModel.isColorBlindModeEnabled.value!!
         binding.startDate.setText(mapsViewModel.startDate.value)
         binding.endDate.setText(mapsViewModel.endDate.value)
+        val progressAmount = ((mapsViewModel.tileSize.value ?: 0.5) * 100.0).toInt()
+        binding.tileSizeSlider.progress = progressAmount
 
         binding.startDate.setOnClickListener {
             context?.let { context ->
@@ -76,6 +78,7 @@ class SettingsDialog : DialogFragment() {
                         binding.startDate.text.toString()
                     mapsViewModel.endDate.value =
                         binding.endDate.text.toString()
+                    mapsViewModel.tileSize.value = binding.tileSizeSlider.progress.toDouble() / 100.0
                 }
                 .setNegativeButton(R.string.cancel) { _, _ ->
                 }
