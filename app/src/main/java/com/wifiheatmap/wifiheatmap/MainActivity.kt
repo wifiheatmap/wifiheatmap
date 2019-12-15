@@ -18,6 +18,7 @@ import androidx.core.view.GravityCompat
 import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentManager
+import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders
 import androidx.lifecycle.get
 import androidx.navigation.NavController
@@ -50,6 +51,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var recyclerAdapter: MainDrawerAdapter
     private lateinit var recyclerDrawerView: RecyclerView
     private lateinit var mapsViewModel: MapsViewModel
+    private lateinit var viewModel: ViewModel
 
     lateinit var wifiManager: WifiManager
     lateinit var results: List<ScanResult>
@@ -69,6 +71,7 @@ class MainActivity : AppCompatActivity() {
         recyclerAdapter = MainDrawerAdapter()
         // create the Singleton MapsViewModel
         mapsViewModel = ViewModelProviders.of(this).get(MapsViewModel::class.java)
+        viewModel = ViewModelProviders.of(this).get(ViewModel::class.java)
         // set the mapsViewModel to the Singleton MapsViewModel
         recyclerAdapter.mapsViewModel = mapsViewModel
         // pass a reference to the drawerLayout so when
@@ -82,10 +85,33 @@ class MainActivity : AppCompatActivity() {
 
         // Refreshes list of networks in the drawer view
         val refreshNetworkList: (View) -> Unit = {
+
+            var scanResults: List<ScanResult>? = null
+            var databaseNetworks: List<Network>? = null
+
+            val setNetworkList: () -> Unit = setNetworkList@ {
+                val scanResults = scanResults ?: return@setNetworkList
+                val databaseNetworks = databaseNetworks ?: return@setNetworkList
+
+                recyclerAdapter.setNetworks(databaseNetworks, scanResults)
+            }
+
             class ScanListener : MainActivity.ScanResultListener {
                 override fun onScanResultsAvailable(results: List<ScanResult>) {
-                    recyclerAdapter.setNetworks(results)
+                    scanResults = results
+                    setNetworkList()
                 }
+            }
+
+            viewModel.getNetworks().observeForever {
+                var nonBlacklistedNetworks = ArrayList<Network>()
+                for(network in it) {
+                    if(!network.blacklisted) {
+                        nonBlacklistedNetworks.add(network)
+                    }
+                }
+                databaseNetworks = nonBlacklistedNetworks
+                setNetworkList()
             }
 
             val scanListener = ScanListener()
@@ -150,7 +176,6 @@ class MainActivity : AppCompatActivity() {
                 val nonDuplicatedResults2 : List<ScanResult> = scanResultManager
                     .removeDuplicatesFromScanResults(results)
 
-                recyclerAdapter.setNetworks(nonDuplicatedResults2)
                 // call that callback function passing the list of scan results
                 scl.onScanResultsAvailable(nonDuplicatedResults2)
             }
