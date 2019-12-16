@@ -3,4 +3,7 @@
     <dimen name="app_margin_medium">16dp</dimen>
     <dimen name="app_margin_small">8dp</dimen>
     <dimen name="app_margin_large">24dp</dimen>
+    <dimen name="indicator_width">30dp</dimen>
+    <dimen name="app_margin_extra_small">4dp</dimen>
+    <dimen name="app_margin_extra_large">72dp</dimen>
 </resources>
