@@ -3,12 +3,14 @@ package com.wifiheatmap.wifiheatmap
 import android.view.*
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.drawerlayout.widget.DrawerLayout
 import kotlinx.android.synthetic.main.network_selection_item_drawer.view.*
 
 class MainDrawerAdapter : NetworkListAdapter() {
 
     lateinit var drawerLayout: DrawerLayout
+    var selectedItemSSID: String = ""
 
     // this is being set from the MainActivity when this MainDrawerAdapter is created.
     lateinit var mapsViewModel: MapsViewModel
@@ -28,6 +30,9 @@ class MainDrawerAdapter : NetworkListAdapter() {
         // use the holder.itemVIew.ssid_label_drawer.text to get the SSID
         holder.itemView.setOnClickListener {
             // set the mapsViewModel viewNetwork (String) to the SSID of the tapped wifi item.
+            // holder.networkView.setBackgroundColor(holder.networkView.context.getColor(R.color.colorPrimary))
+            selectedItemSSID = holder.itemView.ssid_label_drawer.text.toString()
+
             mapsViewModel.viewNetwork.value = holder.itemView.ssid_label_drawer.text.toString()
             this.drawerLayout.closeDrawers()
         }
@@ -46,6 +51,10 @@ class MainDrawerAdapter : NetworkListAdapter() {
             strength.visibility = ImageView.VISIBLE
             strength.setBackgroundResource(getWifiStrengthIcon(network.scanResult?.level))
 
+        }
+
+        if (holder.itemView.ssid_label_drawer.text.toString() == selectedItemSSID) {
+            holder.networkView.setBackgroundColor(holder.networkView.context.getColor(R.color.colorAccent))
         }
     }
 

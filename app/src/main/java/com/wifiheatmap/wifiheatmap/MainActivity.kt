@@ -128,6 +128,7 @@ class MainActivity : AppCompatActivity() {
             override fun onDrawerClosed(drawerView: View) {}
 
             override fun onDrawerOpened(drawerView: View) {
+                Toast.makeText(drawerView.context, "List is refreshing . . .", Toast.LENGTH_SHORT).show()
                 refreshNetworkList(drawerLayout)
             }
 
