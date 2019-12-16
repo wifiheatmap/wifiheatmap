@@ -6,6 +6,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
         <TextView
             android:id="@+id/home_fragment_title"
             android:layout_width="0dp"
@@ -13,7 +14,7 @@
             android:layout_marginStart="@dimen/app_margin_medium"
             android:layout_marginTop="@dimen/app_margin_medium"
             android:layout_marginEnd="16dp"
-            android:text="@string/home_network_prompt"
+            android:text="@string/db_manager_title"
             android:textAlignment="center"
             android:textColor="@android:color/black"
             android:textSize="18sp"
