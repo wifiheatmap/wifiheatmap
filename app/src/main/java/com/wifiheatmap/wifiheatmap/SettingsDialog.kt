@@ -9,6 +9,7 @@ import androidx.databinding.DataBindingUtil
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProviders
 import com.wifiheatmap.wifiheatmap.databinding.SettingsDialogBinding
+import kotlinx.android.synthetic.main.settings_dialog.view.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -28,12 +29,28 @@ class SettingsDialog : DialogFragment() {
             false
         )
 
+        val sdf = SimpleDateFormat("MM/dd/yyyy", Locale.US)
+
         binding.toggleDarkModeSwitch.isChecked = mapsViewModel.isDarkModeEnabled.value!!
         binding.toggleColorBlindSwitch.isChecked = mapsViewModel.isColorBlindModeEnabled.value!!
-        binding.startDate.setText(mapsViewModel.startDate.value)
-        binding.endDate.setText(mapsViewModel.endDate.value)
+
+        if(mapsViewModel.startDate.value != null) {
+            binding.startDate.setText(sdf.format(mapsViewModel.startDate.value!!))
+        } else {
+            binding.startDate.setText("")
+        }
+
+        if(mapsViewModel.endDate.value != null) {
+            binding.endDate.setText(sdf.format(mapsViewModel.endDate.value!!))
+        } else {
+            binding.endDate.setText("")
+        }
+
         val progressAmount = ((mapsViewModel.tileSize.value ?: 0.5) * 100.0).toInt()
         binding.tileSizeSlider.progress = progressAmount
+
+        var startDate: Date? = mapsViewModel.startDate.value
+        var endDate: Date? = mapsViewModel.endDate.value
 
         binding.startDate.setOnClickListener {
             context?.let { context ->
@@ -43,7 +60,7 @@ class SettingsDialog : DialogFragment() {
                     calendar.set(Calendar.YEAR, year)
                     calendar.set(Calendar.MONTH, month)
                     calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-                    val sdf = SimpleDateFormat("MM/dd/yyyy", Locale.US)
+                    startDate = calendar.time
                     binding.startDate.setText(sdf.format(calendar.time))
                 }
                 datePicker.show()
@@ -58,7 +75,7 @@ class SettingsDialog : DialogFragment() {
                     calendar.set(Calendar.YEAR, year)
                     calendar.set(Calendar.MONTH, month)
                     calendar.set(Calendar.DAY_OF_MONTH, dayOfMonth)
-                    val sdf = SimpleDateFormat("MM/dd/yyyy", Locale.US)
+                    endDate = calendar.time
                     binding.endDate.setText(sdf.format(calendar.time))
                 }
                 datePicker.show()
@@ -75,9 +92,9 @@ class SettingsDialog : DialogFragment() {
                     mapsViewModel.isColorBlindModeEnabled.value =
                         binding.toggleColorBlindSwitch.isChecked
                     mapsViewModel.startDate.value =
-                        binding.startDate.text.toString()
+                        startDate
                     mapsViewModel.endDate.value =
-                        binding.endDate.text.toString()
+                        endDate
                     mapsViewModel.tileSize.value = binding.tileSizeSlider.progress.toDouble() / 100.0
                 }
                 .setNegativeButton(R.string.cancel) { _, _ ->

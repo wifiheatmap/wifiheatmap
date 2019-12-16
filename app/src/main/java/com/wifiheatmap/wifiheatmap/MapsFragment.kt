@@ -97,6 +97,20 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
             }
         })
 
+        mapsViewModel.startDate.observe(this, Observer {
+            if(currentNetwork != null) {
+                previousViewNetwork = ""
+                setNetwork(currentNetwork!!.ssid)
+            }
+        })
+
+        mapsViewModel.endDate.observe(this, Observer {
+            if(currentNetwork != null) {
+                previousViewNetwork = ""
+                setNetwork(currentNetwork!!.ssid)
+            }
+        })
+
         mapsViewModel.viewNetwork.observe(this, Observer { network ->
             if(network != null && network != "") {
                 setNetwork(network)
@@ -300,7 +314,13 @@ class MapsFragment : Fragment(), OnMapReadyCallback, Observer<List<Data>> {
         if(wifiLiveData != null) {
             wifiLiveData!!.removeObserver(this)
         }
-        wifiLiveData = viewModel.getData(network.ssid)
+
+        if(mapsViewModel.startDate.value != null || mapsViewModel.endDate.value != null) {
+            wifiLiveData = viewModel.getData(network.ssid, -90.0, -180.0, 90.0, 180.0, mapsViewModel.startDate.value ?: Date(0), mapsViewModel.endDate.value ?: Date(Long.MAX_VALUE))
+        } else {
+            wifiLiveData = viewModel.getData(network.ssid)
+        }
+
         wifiLiveData!!.observeForever(this)
 
         heatMapRefreshNeeded = true
