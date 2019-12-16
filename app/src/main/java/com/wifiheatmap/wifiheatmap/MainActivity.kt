@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.text.Editable
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -133,7 +134,10 @@ class MainActivity : AppCompatActivity() {
         drawerLayout.addDrawerListener(object: DrawerLayout.DrawerListener {
             override fun onDrawerStateChanged(newState: Int) {}
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
-            override fun onDrawerClosed(drawerView: View) {}
+
+            override fun onDrawerClosed(drawerView: View) {
+                drawerSearchEditText.text = Editable.Factory.getInstance().newEditable("")
+            }
 
             override fun onDrawerOpened(drawerView: View) {
                 refreshNetworkList(drawerLayout)
