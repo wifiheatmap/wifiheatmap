@@ -77,7 +77,6 @@ class DatabaseManagementFragment : Fragment() {
     private fun showInputMethod(view: View) {
         val imm = getSystemService(context!!, InputMethodManager::class.java)
         if (imm != null) {
-//            imm!!.showSoftInput(view, InputMethodManager.SHOW_FORCED)
             imm!!.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY)
         }
     }
