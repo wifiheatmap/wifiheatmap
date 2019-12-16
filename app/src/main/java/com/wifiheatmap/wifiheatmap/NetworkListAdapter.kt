@@ -4,17 +4,22 @@ import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Filter
+import android.widget.Filterable
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.RecyclerView.ViewHolder
 import com.wifiheatmap.wifiheatmap.room.Network
+import java.util.*
+import kotlin.collections.ArrayList
 
-abstract class NetworkListAdapter : RecyclerView.Adapter<NetworkListAdapter.NetworkHolder>() {
+abstract class NetworkListAdapter : RecyclerView.Adapter<NetworkListAdapter.NetworkHolder>(), Filterable {
 
     class NetworkHolder(val networkView: View) : ViewHolder(networkView)
 
     protected data class NetworkData(val networkDB: Network? = null, val scanResult: ScanResult?)
 
     protected var networks: MutableList<NetworkData>? = null
+    private var networksFull: MutableList<NetworkData>? = null
 
     /**
      * Updates the Objects in our list to display in the RecyclerView
@@ -72,6 +77,8 @@ abstract class NetworkListAdapter : RecyclerView.Adapter<NetworkListAdapter.Netw
             }
         }
 
+        networksFull = ArrayList<NetworkData>(networks!!)
+
         notifyDataSetChanged()
     }
 
@@ -112,6 +119,41 @@ abstract class NetworkListAdapter : RecyclerView.Adapter<NetworkListAdapter.Netw
             }
         } else {
             R.drawable.ic_signal_wifi_off_black_24dp // default value
+        }
+    }
+
+    override fun getFilter(): Filter {
+        return object: Filter() {
+            override fun performFiltering(constraint: CharSequence?): FilterResults {
+                val results = ArrayList<NetworkData>()
+
+                if(networksFull != null) {
+                    if(constraint == null || constraint.isEmpty()) {
+                        results.addAll(networksFull!!)
+                    } else {
+                        val filterPattern = constraint.toString().toLowerCase(Locale.getDefault()).trim()
+                        for(network in networksFull!!) {
+                            val ssid = (network.networkDB?.ssid ?: network.scanResult!!.SSID).toLowerCase(Locale.getDefault()).trim()
+                            if(ssid.contains(filterPattern)) {
+                                results.add(network)
+                            }
+                        }
+                    }
+                }
+
+                val filterResults = FilterResults()
+                filterResults.values = results
+                return filterResults
+            }
+
+            override fun publishResults(constraint: CharSequence?, results: FilterResults?) {
+                if(networks == null) networks = ArrayList<NetworkData>()
+
+                networks?.clear()
+                networks?.addAll(results?.values as List<NetworkData>)
+                notifyDataSetChanged()
+            }
+
         }
     }
 }

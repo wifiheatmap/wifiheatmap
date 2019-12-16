@@ -1,8 +1,13 @@
 package com.wifiheatmap.wifiheatmap
 
+import android.app.SearchManager
+import android.content.Context
 import android.net.wifi.ScanResult
 import android.os.Bundle
 import android.view.*
+import android.view.inputmethod.InputMethodManager
+import android.widget.SearchView
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.fragment.app.Fragment
 import androidx.databinding.DataBindingUtil
 import androidx.lifecycle.ViewModelProviders
@@ -10,6 +15,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.wifiheatmap.wifiheatmap.databinding.FragmentDbManagementBinding
 import com.wifiheatmap.wifiheatmap.room.Network
 import timber.log.Timber
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.ContextCompat.getSystemService
+
+
+
+
 
 /**
  * The home fragment for the Wifi heat mapping application
@@ -63,16 +74,45 @@ class DatabaseManagementFragment : Fragment() {
         return this.binding.root
     }
 
+    private fun showInputMethod(view: View) {
+        val imm = getSystemService(context!!, InputMethodManager::class.java)
+        if (imm != null) {
+//            imm!!.showSoftInput(view, InputMethodManager.SHOW_FORCED)
+            imm!!.toggleSoftInput(InputMethodManager.SHOW_FORCED, InputMethodManager.HIDE_IMPLICIT_ONLY)
+        }
+    }
+
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
-        super.onCreateOptionsMenu(menu, inflater)
-        val menuItem = menu.add(Menu.NONE, R.id.refresh_network_list, Menu.NONE,
-            R.string.refresh)
-        menuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS)
+        inflater.inflate(R.menu.db_management_menu, menu)
+        val searchManager = getSystemService(context!!, SearchManager::class.java)
+        val searchView = menu.findItem(R.id.search_network_list).actionView as SearchView
+        searchView.setSearchableInfo(searchManager!!.getSearchableInfo(activity!!.componentName))
+        searchView.isIconifiedByDefault = false
+        searchView.setOnQueryTextListener(object: SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                recyclerAdapter.filter.filter(newText)
+                return true
+            }
+
+        })
+        searchView.setOnQueryTextFocusChangeListener { v, hasFocus ->
+            if(hasFocus) {
+                showInputMethod(v.findFocus())
+            }
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return if (item.itemId == R.id.refresh_network_list) {
             this.updateScanResults()
+            true
+        } else if (item.itemId == R.id.search_network_list) {
+            val searchView = item.actionView as SearchView
+            searchView.requestFocus()
             true
         } else {
             Timber.e("Unrecognized options item: %s", item.itemId)
