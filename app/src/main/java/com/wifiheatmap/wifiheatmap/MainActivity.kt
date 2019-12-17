@@ -9,12 +9,15 @@ import android.content.pm.PackageManager
 import android.net.wifi.ScanResult
 import android.net.wifi.WifiManager
 import android.os.Bundle
+import android.text.Editable
 import android.view.View
 import android.widget.Button
+import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
+import androidx.core.widget.doOnTextChanged
 import androidx.databinding.DataBindingUtil
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.FragmentManager
@@ -81,7 +84,13 @@ class MainActivity : AppCompatActivity() {
 
         recyclerDrawerView.adapter = recyclerAdapter
 
-        var drawerRefreshButton = findViewById<Button>(R.id.refresh_drawer_network_list)
+        val drawerRefreshButton = findViewById<Button>(R.id.refresh_drawer_network_list)
+
+        val drawerSearchEditText = findViewById<EditText>(R.id.search_edit_text)
+
+        drawerSearchEditText.doOnTextChanged { text, start, count, after ->
+            recyclerAdapter.filter.filter(text)
+        }
 
         // Refreshes list of networks in the drawer view
         val refreshNetworkList: (View) -> Unit = {
@@ -125,7 +134,10 @@ class MainActivity : AppCompatActivity() {
         drawerLayout.addDrawerListener(object: DrawerLayout.DrawerListener {
             override fun onDrawerStateChanged(newState: Int) {}
             override fun onDrawerSlide(drawerView: View, slideOffset: Float) {}
-            override fun onDrawerClosed(drawerView: View) {}
+
+            override fun onDrawerClosed(drawerView: View) {
+                drawerSearchEditText.text = Editable.Factory.getInstance().newEditable("")
+            }
 
             override fun onDrawerOpened(drawerView: View) {
                 Toast.makeText(drawerView.context, "List is refreshing . . .", Toast.LENGTH_SHORT).show()
